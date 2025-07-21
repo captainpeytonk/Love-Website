@@ -2,40 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>💘 Love Timer</title>
+  <title>💘 Love Timer + Relationship Timeline</title>
   <style>
     body {
       font-family: sans-serif;
       text-align: center;
-      padding: 50px;
+      padding: 40px;
       background: #fff0f5;
     }
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-    }
-    #timer {
-      font-size: 1.8rem;
+    h1, h2 {
+      font-size: 2rem;
       color: #ff1493;
     }
-    #dateInputWrapper {
-      margin-top: 30px;
-    }
-    input[type="date"] {
+    #timer, .event-time {
       font-size: 1.2rem;
-      padding: 10px;
+      margin-top: 10px;
+    }
+    #dateInputWrapper, .event-form {
+      margin: 20px auto;
+    }
+    input[type="date"], input[type="text"] {
+      font-size: 1rem;
+      padding: 5px 10px;
+      margin: 5px;
       border: 2px solid #ff69b4;
-      border-radius: 8px;
+      border-radius: 6px;
     }
     button {
-      margin-left: 10px;
-      font-size: 1.2rem;
-      padding: 10px 15px;
+      font-size: 1rem;
+      padding: 8px 12px;
       background: #ff69b4;
       border: none;
       color: white;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
+    }
+    #eventsList {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .event-card {
+      background: #ffe4ec;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .event-card input[type="text"], .event-card input[type="date"] {
+      width: 60%;
+    }
+    .event-card button {
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -50,10 +69,20 @@
     <button onclick="setStartDate()">Start</button>
   </div>
 
+  <h2>📜 Relationship Timeline</h2>
+  <div class="event-form">
+    <input type="text" id="eventName" placeholder="Event name (e.g. First Kiss)">
+    <input type="date" id="eventDate">
+    <button onclick="addEvent()">Add Event</button>
+  </div>
+
+  <div id="eventsList"></div>
+
   <script>
     const timerEl = document.getElementById('timer');
     const inputWrapper = document.getElementById('dateInputWrapper');
     const inputEl = document.getElementById('startDateInput');
+    const eventsList = document.getElementById('eventsList');
 
     let startDate;
 
@@ -89,7 +118,7 @@
         `${hours} hours, ${minutes} minutes, ${seconds} seconds 💖`;
     }
 
-    // Auto-load stored date if available
+    // Load saved love start date
     const savedDate = localStorage.getItem("loveStartDate");
     if (savedDate) {
       startDate = new Date(savedDate + "T00:00:00");
@@ -97,6 +126,70 @@
       updateTimer();
       setInterval(updateTimer, 1000);
     }
+
+    // EVENT TIMELINE STUFF
+
+    let events = JSON.parse(localStorage.getItem('loveEvents')) || [];
+
+    function addEvent() {
+      const name = document.getElementById('eventName').value.trim();
+      const date = document.getElementById('eventDate').value;
+
+      if (!name || !date) return alert("Please fill in both fields!");
+
+      events.push({ name, date });
+      localStorage.setItem('loveEvents', JSON.stringify(events));
+      renderEvents();
+      document.getElementById('eventName').value = '';
+      document.getElementById('eventDate').value = '';
+    }
+
+    function renderEvents() {
+      eventsList.innerHTML = '';
+      events.forEach((event, index) => {
+        const eventDate = new Date(event.date + "T00:00:00");
+        const now = new Date();
+        let diff = now - eventDate;
+
+        let totalSeconds = Math.floor(diff / 1000);
+        const seconds = totalSeconds % 60;
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const minutes = totalMinutes % 60;
+        const totalHours = Math.floor(totalMinutes / 60);
+        const hours = totalHours % 24;
+        const totalDays = Math.floor(totalHours / 24);
+
+        const years = Math.floor(totalDays / 365.25);
+        const months = Math.floor((totalDays % 365.25) / 30.44);
+        const days = Math.floor((totalDays % 365.25) % 30.44);
+
+        const el = document.createElement('div');
+        el.className = 'event-card';
+        el.innerHTML = `
+          <input type="text" value="${event.name}" onchange="updateEventName(${index}, this.value)">
+          <input type="date" value="${event.date}" onchange="updateEventDate(${index}, this.value)">
+          <div class="event-time">
+            ⏳ ${years}y ${months}m ${days}d ${hours}h ${minutes}m ${seconds}s
+          </div>
+        `;
+        eventsList.appendChild(el);
+      });
+    }
+
+    function updateEventName(index, newName) {
+      events[index].name = newName;
+      localStorage.setItem('loveEvents', JSON.stringify(events));
+      renderEvents();
+    }
+
+    function updateEventDate(index, newDate) {
+      events[index].date = newDate;
+      localStorage.setItem('loveEvents', JSON.stringify(events));
+      renderEvents();
+    }
+
+    renderEvents();
+    setInterval(renderEvents, 1000); // update event timers every second
   </script>
 
 </body>
