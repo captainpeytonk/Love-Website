@@ -1,194 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Love Timeline</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #fff0f5;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
-    }
-
-    h1 {
-      margin-bottom: 1rem;
-      color: #d63384;
-    }
-
-    .event-card {
-      background: #fff;
-      border: 2px solid #d63384;
-      border-radius: 1rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .event-time {
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    input[type="text"],
-    input[type="date"] {
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 0.5rem;
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 1rem;
-    }
-
-    button {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      background: #d63384;
-      color: white;
-      margin-top: 0.5rem;
-    }
-
-    button:hover {
-      background: #b82a6d;
-    }
-
-    #addEventForm, #initialForm {
-      background: #fff;
-      border: 2px dashed #d63384;
-      border-radius: 1rem;
-      padding: 1rem;
-      margin-bottom: 2rem;
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-
-    #eventsList {
-      width: 100%;
-      max-width: 400px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Love Timeline</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fff0f5;
+    color: #333;
+    margin: 0;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    color: #d63384;
+    margin-bottom: 2rem;
+  }
+  #addButton {
+    font-size: 4rem;
+    color: #d63384;
+    cursor: pointer;
+    user-select: none;
+    border: 3px dashed #d63384;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+    transition: background 0.3s ease;
+  }
+  #addButton:hover {
+    background: #f8d7e4;
+  }
+  #eventForm {
+    background: #fff;
+    border: 2px solid #d63384;
+    border-radius: 1rem;
+    padding: 1rem 1.5rem;
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: 2rem;
+    display: none;
+    flex-direction: column;
+  }
+  #eventForm input[type="text"],
+  #eventForm input[type="date"] {
+    font-size: 1rem;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  #eventForm button {
+    background: #d63384;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.7rem;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  #eventForm button:disabled {
+    background: #eaa6c0;
+    cursor: default;
+  }
+  #eventsList {
+    max-width: 400px;
+    width: 100%;
+  }
+  .event-card {
+    background: #fff;
+    border: 2px solid #d63384;
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .event-info {
+    flex-grow: 1;
+    margin-right: 1rem;
+  }
+  .event-name {
+    font-weight: bold;
+    color: #d63384;
+    margin-bottom: 0.3rem;
+  }
+  .event-date {
+    font-size: 0.9rem;
+    color: #666;
+  }
+  .event-timer {
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+  }
+  .delete-btn {
+    background: transparent;
+    border: none;
+    color: #d63384;
+    font-size: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .delete-btn:hover {
+    color: #a02862;
+  }
+</style>
 </head>
 <body>
-  <h1>💕 Our Love Timeline</h1>
 
-  <div id="initialForm">
-    <h3>Start Your Love Story</h3>
-    <input type="text" id="initialName" placeholder="Event name (e.g., Together Since)" required />
-    <input type="date" id="initialDate" required />
-    <button onclick="addInitialEvent()">Start</button>
-  </div>
+<h1>💕 Our Love Timeline</h1>
 
-  <div id="eventsList"></div>
+<div id="addButton" title="Add a new event">＋</div>
 
-  <div id="addEventForm" style="display: none;">
-    <h3>Add Another Memory</h3>
-    <input type="text" id="newEventName" placeholder="Event name" />
-    <input type="date" id="newEventDate" />
-    <button onclick="addNewEvent()">➕ Add</button>
-  </div>
+<form id="eventForm" aria-label="Add a new event">
+  <input type="text" id="eventName" placeholder="Event name (e.g. 'Together Since')" required />
+  <input type="date" id="eventDate" required />
+  <button type="submit" disabled>Add Event</button>
+</form>
 
-  <script>
-    let events = [];
+<div id="eventsList"></div>
 
-    function addInitialEvent() {
-      const name = document.getElementById('initialName').value.trim();
-      const date = document.getElementById('initialDate').value;
+<script>
+  const addButton = document.getElementById('addButton');
+  const eventForm = document.getElementById('eventForm');
+  const eventNameInput = document.getElementById('eventName');
+  const eventDateInput = document.getElementById('eventDate');
+  const submitBtn = eventForm.querySelector('button');
+  const eventsList = document.getElementById('eventsList');
 
-      if (!name || !date) {
-        alert("Please fill in both fields.");
-        return;
-      }
+  let events = [];
 
-      events.push({ name, date });
-      document.getElementById('initialForm').style.display = 'none';
-      document.getElementById('addEventForm').style.display = 'block';
-      renderEvents();
-    }
+  // Show form when + button clicked
+  addButton.addEventListener('click', () => {
+    addButton.style.display = 'none';
+    eventForm.style.display = 'flex';
+    eventNameInput.focus();
+  });
 
-    function addNewEvent() {
-      const name = document.getElementById('newEventName').value.trim();
-      const date = document.getElementById('newEventDate').value;
+  // Enable submit if both fields have value
+  function checkInputs() {
+    submitBtn.disabled = !(eventNameInput.value.trim() && eventDateInput.value);
+  }
 
-      if (!name || !date) {
-        alert("Please enter both name and date.");
-        return;
-      }
+  eventNameInput.addEventListener('input', checkInputs);
+  eventDateInput.addEventListener('input', checkInputs);
 
-      events.push({ name, date });
-      document.getElementById('newEventName').value = '';
-      document.getElementById('newEventDate').value = '';
-      renderEvents();
-    }
+  // Add event on form submit
+  eventForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = eventNameInput.value.trim();
+    const date = eventDateInput.value;
 
-    function renderEvents() {
-      const container = document.getElementById('eventsList');
-      container.innerHTML = '';
+    if (!name || !date) return; // just in case
 
-      events.forEach((event, index) => {
-        const card = document.createElement('div');
-        card.className = 'event-card';
+    events.push({ name, date });
+    eventNameInput.value = '';
+    eventDateInput.value = '';
+    submitBtn.disabled = true;
 
-        const title = document.createElement('div');
-        title.innerHTML = `<strong>${event.name}</strong> (${event.date})`;
+    eventForm.style.display = 'none';
+    addButton.style.display = 'flex';
+    renderEvents();
+  });
 
-        const timer = document.createElement('div');
-        timer.className = 'event-time';
-        timer.id = `timer-${index}`;
+  // Delete event by index
+  function deleteEvent(index) {
+    events.splice(index, 1);
+    renderEvents();
+  }
 
-        const del = document.createElement('button');
-        del.textContent = '🗑️ Delete';
-        del.onclick = () => {
-          events.splice(index, 1);
-          renderEvents();
-        };
+  // Render all events
+  function renderEvents() {
+    eventsList.innerHTML = '';
+    if (events.length === 0) return;
 
-        card.appendChild(title);
-        card.appendChild(timer);
-        card.appendChild(del);
-        container.appendChild(card);
-      });
-    }
+    events.forEach((event, i) => {
+      const card = document.createElement('div');
+      card.className = 'event-card';
 
-    function updateTimers() {
-      events.forEach((event, index) => {
-        const eventDate = new Date(event.date + "T00:00:00");
-        const now = new Date();
-        let diff = now - eventDate;
+      const info = document.createElement('div');
+      info.className = 'event-info';
 
-        if (diff < 0) diff = 0;
+      const name = document.createElement('div');
+      name.className = 'event-name';
+      name.textContent = event.name;
 
-        let totalSeconds = Math.floor(diff / 1000);
-        const seconds = totalSeconds % 60;
-        const totalMinutes = Math.floor(totalSeconds / 60);
-        const minutes = totalMinutes % 60;
-        const totalHours = Math.floor(totalMinutes / 60);
-        const hours = totalHours % 24;
-        const totalDays = Math.floor(totalHours / 24);
+      const date = document.createElement('div');
+      date.className = 'event-date';
+      date.textContent = event.date;
 
-        const years = Math.floor(totalDays / 365.25);
-        const months = Math.floor((totalDays % 365.25) / 30.44);
-        const days = Math.floor((totalDays % 365.25) % 30.44);
+      const timer = document.createElement('div');
+      timer.className = 'event-timer';
+      timer.id = `timer-${i}`;
 
-        const text = `⏳ ${years}y ${months}m ${days}d ${hours}h ${minutes}m ${seconds}s`;
+      info.appendChild(name);
+      info.appendChild(date);
+      info.appendChild(timer);
 
-        const timerEl = document.getElementById(`timer-${index}`);
-        if (timerEl) {
-          timerEl.textContent = text;
-        }
-      });
-    }
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-btn';
+      delBtn.innerHTML = '🗑️';
+      delBtn.title = 'Delete event';
+      delBtn.addEventListener('click', () => deleteEvent(i));
 
-    setInterval(updateTimers, 1000);
-  </script>
+      card.appendChild(info);
+      card.appendChild(delBtn);
+
+      eventsList.appendChild(card);
+    });
+  }
+
+  // Update timers every second
+  function updateTimers() {
+    const now = new Date();
+
+    events.forEach((event, i) => {
+      const eventDate = new Date(event.date + "T00:00:00");
+      let diff = now - eventDate;
+      if (diff < 0) diff = 0;
+
+      let totalSeconds = Math.floor(diff / 1000);
+      const seconds = totalSeconds % 60;
+      const totalMinutes = Math.floor(totalSeconds / 60);
+      const minutes = totalMinutes % 60;
+      const totalHours = Math.floor(totalMinutes / 60);
+      const hours = totalHours % 24;
+      const totalDays = Math.floor(totalHours / 24);
+
+      const years = Math.floor(totalDays / 365.25);
+      const months = Math.floor((totalDays % 365.25) / 30.44);
+      const days = Math.floor((totalDays % 365.25) % 30.44);
+
+      const text = `⏳ ${years}y ${months}m ${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+      const timerEl = document.getElementById(`timer-${i}`);
+      if (timerEl) timerEl.textContent = text;
+    });
+  }
+
+  setInterval(updateTimers, 1000);
+</script>
+
 </body>
 </html>
