@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>💘 Love Counter</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #fff0f5;
+    }
+    #loveBtn {
+      font-size: 2rem;
+      padding: 15px 30px;
+      background-color: #ff69b4;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+    #count {
+      font-size: 3rem;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💘 Love Counter</h1>
+  <button id="loveBtn">Click to 💖</button>
+  <div id="count">0</div>
+
+  <script>
+    let count = 0;
+
+    document.getElementById('loveBtn').addEventListener('click', () => {
+      count++;
+      document.getElementById('count').textContent = count;
+    });
+  </script>
+
+</body>
+</html>
