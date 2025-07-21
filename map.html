@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WorldSpots - Share Your World</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <style>
         * {
             margin: 0;
@@ -59,7 +60,7 @@
         #map {
             width: 100%;
             height: calc(100vh - 80px);
-            filter: saturate(0.9) brightness(0.95);
+            z-index: 1;
         }
 
         .upload-modal {
@@ -189,58 +190,140 @@
             transform: translateY(-1px);
         }
 
-        .info-window {
-            max-width: 300px;
-            padding: 0;
-        }
-
-        .info-content {
+        .leaflet-popup-content-wrapper {
             background: white;
-            border-radius: 10px;
-            overflow: hidden;
+            border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: none;
         }
 
-        .info-media {
+        .leaflet-popup-tip {
+            background: white;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.15);
+        }
+
+        .popup-content {
+            padding: 0;
+            margin: 0;
+            min-width: 280px;
+        }
+
+        .popup-media {
             width: 100%;
-            height: 200px;
+            height: 180px;
             object-fit: cover;
             display: block;
+            border-radius: 12px 12px 0 0;
         }
 
-        .info-details {
+        .popup-details {
             padding: 1rem;
         }
 
-        .info-title {
+        .popup-title {
             font-weight: bold;
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
             color: #333;
         }
 
-        .info-description {
+        .popup-description {
             color: #666;
             font-size: 0.9rem;
             line-height: 1.4;
+            margin-bottom: 0.8rem;
         }
 
         .location-info {
             background: #f8f9fa;
-            padding: 0.5rem;
-            margin: 0.5rem 0;
+            padding: 0.4rem 0.6rem;
+            margin: 0.2rem 0;
             border-radius: 5px;
             font-size: 0.8rem;
             color: #666;
+            display: inline-block;
+        }
+
+        .custom-marker {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .custom-marker:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+        }
+
+        .marker-image {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .marker-video {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+
+        .marker-upload {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            border-color: #ffffff;
+            font-weight: bold;
+        }
+
+        .upload-instruction {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 1001;
+            display: none;
+            animation: fadeInOut 3s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            20%, 80% { opacity: 1; }
+        }
+
+        .leaflet-container {
+            border-radius: 0;
+        }
+
+        /* Custom leaflet controls styling */
+        .leaflet-control-zoom a {
+            background: rgba(255,255,255,0.9) !important;
+            border: none !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+        }
+
+        .leaflet-control-attribution {
+            background: rgba(255,255,255,0.8) !important;
+            border-radius: 5px !important;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="logo">🌍 WorldSpots</div>
-        <button class="upload-btn" onclick="openUploadModal()">
+        <button class="upload-btn" onclick="toggleUploadMode()">
             📸 Add Media
         </button>
+    </div>
+    
+    <div class="upload-instruction" id="uploadInstruction">
+        📍 Click anywhere on the map to place your media
     </div>
     
     <div id="map"></div>
@@ -282,52 +365,66 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
         let map;
         let markers = [];
         let mediaData = [];
         let selectedLocation = null;
         let uploadMarker = null;
+        let uploadMode = false;
 
         // Initialize map
         function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 3,
-                center: { lat: 20, lng: 0 },
-                styles: [
-                    {
-                        featureType: "water",
-                        elementType: "geometry",
-                        stylers: [{ color: "#a2daf2" }]
-                    },
-                    {
-                        featureType: "landscape.man_made",
-                        elementType: "geometry",
-                        stylers: [{ color: "#f7f1df" }]
-                    },
-                    {
-                        featureType: "landscape.natural",
-                        elementType: "geometry",
-                        stylers: [{ color: "#d0e3b4" }]
-                    }
-                ]
-            });
+            // Create the map
+            map = L.map('map', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([20, 0], 3);
+
+            // Add OpenStreetMap tile layer with custom styling
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18,
+            }).addTo(map);
 
             // Add click listener for placing media
-            map.addListener('click', (e) => {
-                if (document.getElementById('uploadModal').style.display === 'flex') {
-                    setUploadLocation(e.latLng);
-                }
-            });
+            map.on('click', onMapClick);
 
             // Load existing media data
             loadMediaData();
         }
 
+        function onMapClick(e) {
+            if (uploadMode) {
+                setUploadLocation(e.latlng);
+            }
+        }
+
+        function toggleUploadMode() {
+            uploadMode = !uploadMode;
+            const btn = document.querySelector('.upload-btn');
+            const instruction = document.getElementById('uploadInstruction');
+            
+            if (uploadMode) {
+                btn.textContent = '❌ Cancel Upload';
+                btn.style.background = 'linear-gradient(45deg, #f5576c, #f093fb)';
+                map.getContainer().style.cursor = 'crosshair';
+                instruction.style.display = 'block';
+                setTimeout(() => {
+                    instruction.style.display = 'none';
+                }, 3000);
+            } else {
+                btn.textContent = '📸 Add Media';
+                btn.style.background = 'linear-gradient(45deg, #667eea, #764ba2)';
+                map.getContainer().style.cursor = '';
+                instruction.style.display = 'none';
+                closeUploadModal();
+            }
+        }
+
         function openUploadModal() {
             document.getElementById('uploadModal').style.display = 'flex';
-            // Change cursor to crosshair to indicate location selection mode
-            map.setOptions({ draggableCursor: 'crosshair' });
         }
 
         function closeUploadModal() {
@@ -335,44 +432,57 @@
             document.getElementById('uploadForm').reset();
             selectedLocation = null;
             if (uploadMarker) {
-                uploadMarker.setMap(null);
+                map.removeLayer(uploadMarker);
                 uploadMarker = null;
             }
-            map.setOptions({ draggableCursor: '' });
+            // Reset file input label
+            document.querySelector('.file-input-label').textContent = '🖼️ Select Media File';
         }
 
-        function setUploadLocation(latLng) {
-            selectedLocation = latLng;
+        function setUploadLocation(latlng) {
+            selectedLocation = latlng;
             
             // Remove previous upload marker
             if (uploadMarker) {
-                uploadMarker.setMap(null);
+                map.removeLayer(uploadMarker);
             }
 
+            // Create custom marker HTML
+            const markerHtml = `<div class="custom-marker marker-upload">+</div>`;
+            
             // Add temporary marker
-            uploadMarker = new google.maps.Marker({
-                position: latLng,
-                map: map,
-                icon: {
-                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="12" fill="#667eea" stroke="white" stroke-width="3"/>
-                            <text x="16" y="20" text-anchor="middle" fill="white" font-size="16">+</text>
-                        </svg>
-                    `),
-                    scaledSize: new google.maps.Size(32, 32)
-                }
-            });
+            uploadMarker = L.marker([latlng.lat, latlng.lng], {
+                icon: L.divIcon({
+                    html: markerHtml,
+                    className: 'custom-div-icon',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                })
+            }).addTo(map);
 
-            // Reverse geocode to get location name
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({ location: latLng }, (results, status) => {
-                if (status === 'OK' && results[0]) {
-                    document.getElementById('locationName').value = results[0].formatted_address;
-                } else {
-                    document.getElementById('locationName').value = `${latLng.lat().toFixed(4)}, ${latLng.lng().toFixed(4)}`;
-                }
-            });
+            // Reverse geocode to get location name using Nominatim (OpenStreetMap's geocoding service)
+            reverseGeocode(latlng);
+            
+            // Open upload modal
+            openUploadModal();
+        }
+
+        function reverseGeocode(latlng) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&zoom=18&addressdetails=1`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        document.getElementById('locationName').value = data.display_name;
+                    } else {
+                        document.getElementById('locationName').value = `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Geocoding error:', error);
+                    document.getElementById('locationName').value = `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
+                });
         }
 
         // Handle form submission
@@ -412,59 +522,53 @@
                 saveMediaData();
                 addMarkerToMap(mediaItem);
                 closeUploadModal();
+                toggleUploadMode(); // Exit upload mode
             };
             reader.readAsDataURL(file);
         });
 
         function addMarkerToMap(mediaItem) {
-            const marker = new google.maps.Marker({
-                position: mediaItem.location,
-                map: map,
-                icon: {
-                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                        <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="14" cy="14" r="10" fill="#f093fb" stroke="white" stroke-width="2"/>
-                            <text x="14" y="17" text-anchor="middle" fill="white" font-size="12">${mediaItem.mediaType === 'image' ? '📸' : '🎥'}</text>
-                        </svg>
-                    `),
-                    scaledSize: new google.maps.Size(28, 28)
-                }
-            });
+            // Create custom marker HTML
+            const isImage = mediaItem.mediaType === 'image';
+            const markerClass = isImage ? 'marker-image' : 'marker-video';
+            const icon = isImage ? '📸' : '🎥';
+            const markerHtml = `<div class="custom-marker ${markerClass}">${icon}</div>`;
 
-            // Create info window content
-            const infoContent = `
-                <div class="info-content">
+            const marker = L.marker([mediaItem.location.lat, mediaItem.location.lng], {
+                icon: L.divIcon({
+                    html: markerHtml,
+                    className: 'custom-div-icon',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                })
+            }).addTo(map);
+
+            // Create popup content
+            const popupContent = `
+                <div class="popup-content">
                     ${mediaItem.mediaType === 'image' ? 
-                        `<img src="${mediaItem.mediaUrl}" class="info-media" alt="${mediaItem.title}">` :
-                        `<video src="${mediaItem.mediaUrl}" class="info-media" controls></video>`
+                        `<img src="${mediaItem.mediaUrl}" class="popup-media" alt="${mediaItem.title}">` :
+                        `<video src="${mediaItem.mediaUrl}" class="popup-media" controls></video>`
                     }
-                    <div class="info-details">
-                        <div class="info-title">${mediaItem.title}</div>
-                        <div class="info-description">${mediaItem.description}</div>
+                    <div class="popup-details">
+                        <div class="popup-title">${mediaItem.title}</div>
+                        <div class="popup-description">${mediaItem.description}</div>
                         <div class="location-info">📍 ${mediaItem.locationName}</div>
                         <div class="location-info">📅 ${mediaItem.timestamp}</div>
                     </div>
                 </div>
             `;
 
-            const infoWindow = new google.maps.InfoWindow({
-                content: infoContent,
-                maxWidth: 300
+            marker.bindPopup(popupContent, {
+                maxWidth: 300,
+                className: 'custom-popup'
             });
 
-            marker.addListener('click', () => {
-                // Close other info windows
-                markers.forEach(m => m.infoWindow && m.infoWindow.close());
-                infoWindow.open(map, marker);
-            });
-
-            marker.infoWindow = infoWindow;
             markers.push(marker);
         }
 
         function loadMediaData() {
-            // In a real app, this would load from a database
-            // For demo purposes, we'll add some sample data
+            // Sample data for demonstration
             const sampleData = [
                 {
                     id: 1,
@@ -505,6 +609,27 @@
                     `),
                     mediaType: "image",
                     timestamp: "7/19/2025"
+                },
+                {
+                    id: 3,
+                    title: "Big Ben",
+                    description: "London's iconic clock tower",
+                    location: { lat: 51.4994, lng: -0.1245 },
+                    locationName: "London, United Kingdom",
+                    mediaUrl: "data:image/svg+xml;base64," + btoa(`
+                        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="400" height="300" fill="#B0C4DE"/>
+                            <rect x="180" y="50" width="40" height="200" fill="#8B4513"/>
+                            <circle cx="200" cy="100" r="25" fill="white"/>
+                            <circle cx="200" cy="100" r="20" fill="#000"/>
+                            <line x1="200" y1="100" x2="200" y2="85" stroke="black" stroke-width="3"/>
+                            <line x1="200" y1="100" x2="210" y2="100" stroke="black" stroke-width="2"/>
+                            <polygon points="190,40 210,40 205,25 195,25" fill="#8B4513"/>
+                            <text x="200" y="290" text-anchor="middle" fill="white" font-size="16">Big Ben</text>
+                        </svg>
+                    `),
+                    mediaType: "image",
+                    timestamp: "7/18/2025"
                 }
             ];
 
@@ -524,15 +649,17 @@
             const label = document.querySelector('.file-input-label');
             if (e.target.files.length > 0) {
                 const fileName = e.target.files[0].name;
-                label.textContent = `✅ ${fileName}`;
+                const maxLength = 25;
+                const displayName = fileName.length > maxLength ? 
+                    fileName.substring(0, maxLength) + '...' : fileName;
+                label.textContent = `✅ ${displayName}`;
             } else {
                 label.textContent = '🖼️ Select Media File';
             }
         });
-    </script>
-    
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&callback=initMap">
+
+        // Initialize the map when the page loads
+        window.addEventListener('load', initMap);
     </script>
 </body>
 </html>
