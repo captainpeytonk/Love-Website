@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Love Timeline</title>
   <style>
     body {
@@ -30,6 +30,11 @@
       max-width: 400px;
     }
 
+    .event-time {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
     input[type="text"],
     input[type="date"] {
       padding: 0.5rem;
@@ -41,11 +46,6 @@
       font-size: 1rem;
     }
 
-    .event-time {
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
-    }
-
     button {
       padding: 0.5rem 1rem;
       font-size: 1rem;
@@ -54,71 +54,108 @@
       cursor: pointer;
       background: #d63384;
       color: white;
+      margin-top: 0.5rem;
     }
 
     button:hover {
       background: #b82a6d;
     }
 
-    #addEventBtn {
-      margin-top: 1rem;
+    #addEventForm, #initialForm {
+      background: #fff;
+      border: 2px dashed #d63384;
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    #eventsList {
+      width: 100%;
+      max-width: 400px;
     }
   </style>
 </head>
 <body>
   <h1>💕 Our Love Timeline</h1>
+
+  <div id="initialForm">
+    <h3>Start Your Love Story</h3>
+    <input type="text" id="initialName" placeholder="Event name (e.g., Together Since)" required />
+    <input type="date" id="initialDate" required />
+    <button onclick="addInitialEvent()">Start</button>
+  </div>
+
   <div id="eventsList"></div>
-  <button id="addEventBtn">➕ Add Date</button>
+
+  <div id="addEventForm" style="display: none;">
+    <h3>Add Another Memory</h3>
+    <input type="text" id="newEventName" placeholder="Event name" />
+    <input type="date" id="newEventDate" />
+    <button onclick="addNewEvent()">➕ Add</button>
+  </div>
 
   <script>
     let events = [];
 
-    function promptInitialDate() {
-      const date = prompt("When did your love story begin? (YYYY-MM-DD)");
-      if (date && !isNaN(Date.parse(date))) {
-        events.push({ name: "Together Since", date: date });
-      } else {
-        alert("Invalid date format. Try again!");
-        promptInitialDate();
+    function addInitialEvent() {
+      const name = document.getElementById('initialName').value.trim();
+      const date = document.getElementById('initialDate').value;
+
+      if (!name || !date) {
+        alert("Please fill in both fields.");
+        return;
       }
+
+      events.push({ name, date });
+      document.getElementById('initialForm').style.display = 'none';
+      document.getElementById('addEventForm').style.display = 'block';
+      renderEvents();
+    }
+
+    function addNewEvent() {
+      const name = document.getElementById('newEventName').value.trim();
+      const date = document.getElementById('newEventDate').value;
+
+      if (!name || !date) {
+        alert("Please enter both name and date.");
+        return;
+      }
+
+      events.push({ name, date });
+      document.getElementById('newEventName').value = '';
+      document.getElementById('newEventDate').value = '';
+      renderEvents();
     }
 
     function renderEvents() {
-      const eventsList = document.getElementById('eventsList');
-      eventsList.innerHTML = '';
+      const container = document.getElementById('eventsList');
+      container.innerHTML = '';
 
       events.forEach((event, index) => {
-        const container = document.createElement('div');
-        container.className = 'event-card';
-        container.id = `event-${index}`;
+        const card = document.createElement('div');
+        card.className = 'event-card';
 
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = event.name;
-        nameInput.disabled = true;
+        const title = document.createElement('div');
+        title.innerHTML = `<strong>${event.name}</strong> (${event.date})`;
 
-        const dateInput = document.createElement('input');
-        dateInput.type = 'date';
-        dateInput.value = event.date;
-        dateInput.disabled = true;
+        const timer = document.createElement('div');
+        timer.className = 'event-time';
+        timer.id = `timer-${index}`;
 
-        const timeDisplay = document.createElement('div');
-        timeDisplay.className = 'event-time';
-        timeDisplay.id = `event-time-${index}`;
-
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = '🗑️ Delete';
-        deleteButton.onclick = () => {
+        const del = document.createElement('button');
+        del.textContent = '🗑️ Delete';
+        del.onclick = () => {
           events.splice(index, 1);
           renderEvents();
         };
 
-        container.appendChild(nameInput);
-        container.appendChild(dateInput);
-        container.appendChild(timeDisplay);
-        container.appendChild(deleteButton);
-
-        eventsList.appendChild(container);
+        card.appendChild(title);
+        card.appendChild(timer);
+        card.appendChild(del);
+        container.appendChild(card);
       });
     }
 
@@ -142,29 +179,15 @@
         const months = Math.floor((totalDays % 365.25) / 30.44);
         const days = Math.floor((totalDays % 365.25) % 30.44);
 
-        const display = document.getElementById(`event-time-${index}`);
-        if (display) {
-          display.textContent = `⏳ ${years}y ${months}m ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        const text = `⏳ ${years}y ${months}m ${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+        const timerEl = document.getElementById(`timer-${index}`);
+        if (timerEl) {
+          timerEl.textContent = text;
         }
       });
     }
 
-    document.getElementById('addEventBtn').addEventListener('click', () => {
-      const name = prompt("Name of the event?");
-      const date = prompt("Date of the event? (YYYY-MM-DD)");
-
-      if (!name || !date || isNaN(Date.parse(date))) {
-        alert("Please enter a valid name and date!");
-        return;
-      }
-
-      events.push({ name, date });
-      renderEvents();
-    });
-
-    // Initialize
-    promptInitialDate();
-    renderEvents();
     setInterval(updateTimers, 1000);
   </script>
 </body>
