@@ -76,40 +76,46 @@
     width: 100%;
   }
   .event-card {
+    position: relative;
     background: #fff;
     border: 2px solid #d63384;
     border-radius: 1rem;
-    padding: 1rem;
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
     margin-bottom: 1rem;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
   }
   .event-info {
-    flex-grow: 1;
-    margin-right: 1rem;
+    margin-bottom: 0.5rem;
   }
   .event-name {
     font-weight: bold;
     color: #d63384;
     margin-bottom: 0.3rem;
+    font-size: 1.2rem;
   }
   .event-date {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: #666;
   }
   .event-timer {
-    font-size: 0.9rem;
-    margin-top: 0.3rem;
+    font-size: 1rem;
+    margin-top: 0.7rem;
+    color: #555;
   }
   .delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
     background: transparent;
     border: none;
     color: #d63384;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     cursor: pointer;
     user-select: none;
+    line-height: 1;
+    padding: 0;
   }
   .delete-btn:hover {
     color: #a02862;
@@ -155,13 +161,22 @@
   eventNameInput.addEventListener('input', checkInputs);
   eventDateInput.addEventListener('input', checkInputs);
 
+  // Format date as DD/MM/YYYY for display
+  function formatDateDMY(dateStr) {
+    const d = new Date(dateStr + "T00:00:00");
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
   // Add event on form submit
   eventForm.addEventListener('submit', e => {
     e.preventDefault();
     const name = eventNameInput.value.trim();
     const date = eventDateInput.value;
 
-    if (!name || !date) return; // just in case
+    if (!name || !date) return; // safety check
 
     events.push({ name, date });
     eventNameInput.value = '';
@@ -197,7 +212,7 @@
 
       const date = document.createElement('div');
       date.className = 'event-date';
-      date.textContent = event.date;
+      date.textContent = formatDateDMY(event.date);
 
       const timer = document.createElement('div');
       timer.className = 'event-timer';
@@ -241,7 +256,7 @@
       const months = Math.floor((totalDays % 365.25) / 30.44);
       const days = Math.floor((totalDays % 365.25) % 30.44);
 
-      const text = `⏳ ${years}y ${months}m ${days}d ${hours}h ${minutes}m ${seconds}s`;
+      const text = `⏳ ${years} Years ${months} Months ${days} Days ${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
 
       const timerEl = document.getElementById(`timer-${i}`);
       if (timerEl) timerEl.textContent = text;
