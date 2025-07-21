@@ -2,191 +2,170 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>💘 Love Timer + Relationship Timeline</title>
+  <title>Love Timeline</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
+      font-family: 'Segoe UI', sans-serif;
       background: #fff0f5;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
     }
-    h1, h2 {
-      font-size: 2rem;
-      color: #ff1493;
+
+    h1 {
+      margin-bottom: 1rem;
+      color: #d63384;
     }
-    #timer, .event-time {
-      font-size: 1.2rem;
-      margin-top: 10px;
-    }
-    #dateInputWrapper, .event-form {
-      margin: 20px auto;
-    }
-    input[type="date"], input[type="text"] {
-      font-size: 1rem;
-      padding: 5px 10px;
-      margin: 5px;
-      border: 2px solid #ff69b4;
-      border-radius: 6px;
-    }
-    button {
-      font-size: 1rem;
-      padding: 8px 12px;
-      background: #ff69b4;
-      border: none;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    #eventsList {
-      margin-top: 30px;
-      text-align: left;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-    }
+
     .event-card {
-      background: #ffe4ec;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
+      background: #fff;
+      border: 2px solid #d63384;
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 400px;
     }
-    .event-card input[type="text"], .event-card input[type="date"] {
-      width: 60%;
+
+    input[type="text"],
+    input[type="date"] {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 1rem;
     }
-    .event-card button {
-      margin-top: 5px;
+
+    .event-time {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      background: #d63384;
+      color: white;
+    }
+
+    button:hover {
+      background: #b82a6d;
+    }
+
+    #addEventBtn {
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
-
-  <h1>💑 We've been in love for:</h1>
-  <div id="timer">Loading...</div>
-
-  <div id="dateInputWrapper">
-    <p>When did your love story begin?</p>
-    <input type="date" id="startDateInput">
-    <button onclick="setStartDate()">Start</button>
-  </div>
-
-  <h2>📜 Relationship Timeline</h2>
-  <div class="event-form">
-    <input type="text" id="eventName" placeholder="Event name (e.g. First Kiss)">
-    <input type="date" id="eventDate">
-    <button onclick="addEvent()">Add Event</button>
-  </div>
-
+  <h1>💕 Our Love Timeline</h1>
   <div id="eventsList"></div>
+  <button id="addEventBtn">➕ Add Date</button>
 
   <script>
-    const timerEl = document.getElementById('timer');
-    const inputWrapper = document.getElementById('dateInputWrapper');
-    const inputEl = document.getElementById('startDateInput');
-    const eventsList = document.getElementById('eventsList');
+    let events = [];
 
-    let startDate;
-
-    function setStartDate() {
-      const inputDate = inputEl.value;
-      if (!inputDate) return alert("Please select a date!");
-      localStorage.setItem("loveStartDate", inputDate);
-      startDate = new Date(inputDate + "T00:00:00");
-      inputWrapper.style.display = "none";
-      updateTimer();
-      setInterval(updateTimer, 1000);
+    function promptInitialDate() {
+      const date = prompt("When did your love story begin? (YYYY-MM-DD)");
+      if (date && !isNaN(Date.parse(date))) {
+        events.push({ name: "Together Since", date: date });
+      } else {
+        alert("Invalid date format. Try again!");
+        promptInitialDate();
+      }
     }
 
-    function updateTimer() {
-      const now = new Date();
-      let diff = now - startDate;
-      if (diff < 0) return timerEl.textContent = "That date is in the future!";
+    function renderEvents() {
+      const eventsList = document.getElementById('eventsList');
+      eventsList.innerHTML = '';
 
-      let totalSeconds = Math.floor(diff / 1000);
-      const seconds = totalSeconds % 60;
-      const totalMinutes = Math.floor(totalSeconds / 60);
-      const minutes = totalMinutes % 60;
-      const totalHours = Math.floor(totalMinutes / 60);
-      const hours = totalHours % 24;
-      const totalDays = Math.floor(totalHours / 24);
+      events.forEach((event, index) => {
+        const container = document.createElement('div');
+        container.className = 'event-card';
+        container.id = `event-${index}`;
 
-      const years = Math.floor(totalDays / 365.25);
-      const months = Math.floor((totalDays % 365.25) / 30.44);
-      const days = Math.floor((totalDays % 365.25) % 30.44);
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = event.name;
+        nameInput.disabled = true;
 
-      timerEl.innerHTML =
-        `${years} years, ${months} months, ${days} days,<br>` +
-        `${hours} hours, ${minutes} minutes, ${seconds} seconds 💖`;
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.value = event.date;
+        dateInput.disabled = true;
+
+        const timeDisplay = document.createElement('div');
+        timeDisplay.className = 'event-time';
+        timeDisplay.id = `event-time-${index}`;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = '🗑️ Delete';
+        deleteButton.onclick = () => {
+          events.splice(index, 1);
+          renderEvents();
+        };
+
+        container.appendChild(nameInput);
+        container.appendChild(dateInput);
+        container.appendChild(timeDisplay);
+        container.appendChild(deleteButton);
+
+        eventsList.appendChild(container);
+      });
     }
 
-    // Load saved love start date
-    const savedDate = localStorage.getItem("loveStartDate");
-    if (savedDate) {
-      startDate = new Date(savedDate + "T00:00:00");
-      inputWrapper.style.display = "none";
-      updateTimer();
-      setInterval(updateTimer, 1000);
+    function updateTimers() {
+      events.forEach((event, index) => {
+        const eventDate = new Date(event.date + "T00:00:00");
+        const now = new Date();
+        let diff = now - eventDate;
+
+        if (diff < 0) diff = 0;
+
+        let totalSeconds = Math.floor(diff / 1000);
+        const seconds = totalSeconds % 60;
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const minutes = totalMinutes % 60;
+        const totalHours = Math.floor(totalMinutes / 60);
+        const hours = totalHours % 24;
+        const totalDays = Math.floor(totalHours / 24);
+
+        const years = Math.floor(totalDays / 365.25);
+        const months = Math.floor((totalDays % 365.25) / 30.44);
+        const days = Math.floor((totalDays % 365.25) % 30.44);
+
+        const display = document.getElementById(`event-time-${index}`);
+        if (display) {
+          display.textContent = `⏳ ${years}y ${months}m ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+      });
     }
 
-    // EVENT TIMELINE STUFF
+    document.getElementById('addEventBtn').addEventListener('click', () => {
+      const name = prompt("Name of the event?");
+      const date = prompt("Date of the event? (YYYY-MM-DD)");
 
-    let events = JSON.parse(localStorage.getItem('loveEvents')) || [];
-
-    function addEvent() {
-      const name = document.getElementById('eventName').value.trim();
-      const date = document.getElementById('eventDate').value;
-
-      if (!name || !date) return alert("Please fill in both fields!");
+      if (!name || !date || isNaN(Date.parse(date))) {
+        alert("Please enter a valid name and date!");
+        return;
+      }
 
       events.push({ name, date });
-      localStorage.setItem('loveEvents', JSON.stringify(events));
       renderEvents();
-      document.getElementById('eventName').value = '';
-      document.getElementById('eventDate').value = '';
-    }
+    });
 
-function renderEvents(initial = true) {
-  if (initial) eventsList.innerHTML = '';
-
-  events.forEach((event, index) => {
-    let el = document.getElementById(`event-${index}`);
-    const eventDate = new Date(event.date + "T00:00:00");
-    const now = new Date();
-    let diff = now - eventDate;
-
-    let totalSeconds = Math.floor(diff / 1000);
-    const seconds = totalSeconds % 60;
-    const totalMinutes = Math.floor(totalSeconds / 60);
-    const minutes = totalMinutes % 60;
-    const totalHours = Math.floor(totalMinutes / 60);
-    const hours = totalHours % 24;
-    const totalDays = Math.floor(totalHours / 24);
-
-    const years = Math.floor(totalDays / 365.25);
-    const months = Math.floor((totalDays % 365.25) / 30.44);
-    const days = Math.floor((totalDays % 365.25) % 30.44);
-
-    if (!el) {
-      el = document.createElement('div');
-      el.className = 'event-card';
-      el.id = `event-${index}`;
-      el.innerHTML = `
-        <input type="text" value="${event.name}" onchange="updateEventName(${index}, this.value)">
-        <input type="date" value="${event.date}" onchange="updateEventDate(${index}, this.value)">
-        <div class="event-time" id="event-time-${index}"></div>
-      `;
-      eventsList.appendChild(el);
-    }
-
-    const timeEl = document.getElementById(`event-time-${index}`);
-    if (timeEl) {
-      timeEl.textContent = `⏳ ${years}y ${months}m ${days}d ${hours}h ${minutes}m ${seconds}s`;
-    }
-  });
-}
-
-renderEvents(true);
-setInterval(() => renderEvents(false), 1000);
+    // Initialize
+    promptInitialDate();
+    renderEvents();
+    setInterval(updateTimers, 1000);
   </script>
-
 </body>
 </html>
