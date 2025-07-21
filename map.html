@@ -210,10 +210,11 @@
 
         .popup-media {
             width: 100%;
-            height: 180px;
-            object-fit: cover;
+            max-height: 250px;
+            object-fit: contain;
             display: block;
             border-radius: 12px 12px 0 0;
+            background: #f8f9fa;
         }
 
         .popup-details {
@@ -263,12 +264,16 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.4);
         }
 
-        .marker-image {
-            background: linear-gradient(45deg, #f093fb, #f5576c);
+        .marker-him {
+            background: linear-gradient(45deg, #ff4757, #ff3742);
         }
 
-        .marker-video {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+        .marker-her {
+            background: linear-gradient(45deg, #3742fa, #2f3542);
+        }
+
+        .marker-together {
+            background: linear-gradient(45deg, #2ed573, #1e90ff);
         }
 
         .marker-upload {
@@ -350,6 +355,16 @@
                             🖼️ Select Media File
                         </label>
                     </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="mediaCategory" required style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                        <option value="">Select category</option>
+                        <option value="him">Him</option>
+                        <option value="her">Her</option>
+                        <option value="together">Together</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -498,9 +513,15 @@
             const description = document.getElementById('mediaDescription').value;
             const file = document.getElementById('mediaFile').files[0];
             const locationName = document.getElementById('locationName').value;
+            const category = document.getElementById('mediaCategory').value;
 
             if (!file) {
                 alert('Please select a media file!');
+                return;
+            }
+
+            if (!category) {
+                alert('Please select a category!');
                 return;
             }
 
@@ -515,6 +536,7 @@
                     locationName: locationName,
                     mediaUrl: event.target.result,
                     mediaType: file.type.startsWith('image/') ? 'image' : 'video',
+                    category: category,
                     timestamp: new Date().toLocaleDateString()
                 };
 
@@ -528,9 +550,9 @@
         });
 
         function addMarkerToMap(mediaItem) {
-            // Create custom marker HTML
+            // Create custom marker HTML based on category
+            const markerClass = `marker-${mediaItem.category}`;
             const isImage = mediaItem.mediaType === 'image';
-            const markerClass = isImage ? 'marker-image' : 'marker-video';
             const icon = isImage ? '📸' : '🎥';
             const markerHtml = `<div class="custom-marker ${markerClass}">${icon}</div>`;
 
@@ -554,6 +576,7 @@
                         <div class="popup-title">${mediaItem.title}</div>
                         <div class="popup-description">${mediaItem.description}</div>
                         <div class="location-info">📍 ${mediaItem.locationName}</div>
+                        <div class="location-info">👤 ${mediaItem.category.charAt(0).toUpperCase() + mediaItem.category.slice(1)}</div>
                         <div class="location-info">📅 ${mediaItem.timestamp}</div>
                     </div>
                 </div>
@@ -568,75 +591,8 @@
         }
 
         function loadMediaData() {
-            // Sample data for demonstration
-            const sampleData = [
-                {
-                    id: 1,
-                    title: "Eiffel Tower",
-                    description: "Beautiful sunset view from the Trocadéro",
-                    location: { lat: 48.8584, lng: 2.2945 },
-                    locationName: "Paris, France",
-                    mediaUrl: "data:image/svg+xml;base64," + btoa(`
-                        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="400" height="300" fill="#87CEEB"/>
-                            <polygon points="180,280 220,280 210,50 190,50" fill="#8B4513"/>
-                            <polygon points="190,150 210,150 230,140 170,140" fill="#8B4513"/>
-                            <circle cx="80" cy="60" r="30" fill="#FFD700"/>
-                            <text x="200" y="290" text-anchor="middle" fill="white" font-size="16">Eiffel Tower</text>
-                        </svg>
-                    `),
-                    mediaType: "image",
-                    timestamp: "7/20/2025"
-                },
-                {
-                    id: 2,
-                    title: "Times Square",
-                    description: "The energy of NYC at night",
-                    location: { lat: 40.7589, lng: -73.9851 },
-                    locationName: "New York, NY, USA",
-                    mediaUrl: "data:image/svg+xml;base64," + btoa(`
-                        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="400" height="300" fill="#1a1a1a"/>
-                            <rect x="50" y="50" width="80" height="200" fill="#333"/>
-                            <rect x="150" y="80" width="70" height="170" fill="#333"/>
-                            <rect x="250" y="40" width="90" height="210" fill="#333"/>
-                            <rect x="60" y="60" width="15" height="15" fill="#FFD700"/>
-                            <rect x="80" y="80" width="15" height="15" fill="#FF69B4"/>
-                            <rect x="160" y="90" width="15" height="15" fill="#00CED1"/>
-                            <rect x="260" y="60" width="15" height="15" fill="#FF4500"/>
-                            <text x="200" y="290" text-anchor="middle" fill="white" font-size="16">Times Square</text>
-                        </svg>
-                    `),
-                    mediaType: "image",
-                    timestamp: "7/19/2025"
-                },
-                {
-                    id: 3,
-                    title: "Big Ben",
-                    description: "London's iconic clock tower",
-                    location: { lat: 51.4994, lng: -0.1245 },
-                    locationName: "London, United Kingdom",
-                    mediaUrl: "data:image/svg+xml;base64," + btoa(`
-                        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="400" height="300" fill="#B0C4DE"/>
-                            <rect x="180" y="50" width="40" height="200" fill="#8B4513"/>
-                            <circle cx="200" cy="100" r="25" fill="white"/>
-                            <circle cx="200" cy="100" r="20" fill="#000"/>
-                            <line x1="200" y1="100" x2="200" y2="85" stroke="black" stroke-width="3"/>
-                            <line x1="200" y1="100" x2="210" y2="100" stroke="black" stroke-width="2"/>
-                            <polygon points="190,40 210,40 205,25 195,25" fill="#8B4513"/>
-                            <text x="200" y="290" text-anchor="middle" fill="white" font-size="16">Big Ben</text>
-                        </svg>
-                    `),
-                    mediaType: "image",
-                    timestamp: "7/18/2025"
-                }
-            ];
-
-            mediaData = [...sampleData];
-            sampleData.forEach(item => {
-                addMarkerToMap(item);
-            });
+            // No preloaded sample data - start with empty array
+            mediaData = [];
         }
 
         function saveMediaData() {
