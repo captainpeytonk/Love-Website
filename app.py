@@ -10,8 +10,6 @@ CORS(app)  # 🚀 Enables cross-origin requests
 GENERATED_DIR = "generated"
 os.makedirs(GENERATED_DIR, exist_ok=True)
 
-os.makedirs(GENERATED_DIR, exist_ok=True)
-
 @app.route('/speak', methods=['POST'])
 def speak():
     data = request.get_json()
@@ -19,15 +17,15 @@ def speak():
     audio_id = str(uuid.uuid4())
     output_path = os.path.join(GENERATED_DIR, f"{audio_id}.wav")
 
-    # Replace this with the actual OpenVoice command or function call
-subprocess.run([
-    "python", "OpenVoice/demo_part1.py",
-    "--text", text,
-    "--reference_audio", "OpenVoice/resources/reference_audio/your_voice.wav",
-    "--output_path", output_path
-])
+    subprocess.run([
+        "python", "OpenVoice/demo_part1.py",
+        "--text", text,
+        "--reference_audio", "OpenVoice/resources/reference_audio/your_voice.wav",
+        "--output_path", output_path
+    ])
 
     return jsonify({"url": f"http://localhost:5000/audio/{audio_id}.wav"})
+
 
 @app.route('/audio/<filename>')
 def audio(filename):
