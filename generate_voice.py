@@ -3,11 +3,12 @@ import sys
 import torch
 import soundfile as sf
 
-# === Fix for ModuleNotFoundError ===
-# Add OpenVoice/openvoice to sys.path
+# === Fix for ModuleNotFoundError / ImportError ===
+# Add local openvoice folder to sys.path with highest priority
 current_dir = os.path.dirname(os.path.abspath(__file__))
 openvoice_dir = os.path.join(current_dir, 'OpenVoice', 'openvoice')
-sys.path.append(openvoice_dir)
+if openvoice_dir not in sys.path:
+    sys.path.insert(0, openvoice_dir)  # Insert at front to override any global api packages
 
 from api import BaseSpeakerTTS, ToneColorConverter
 
@@ -16,8 +17,7 @@ BASE_SPEAKER_CONFIG = os.path.join(current_dir, "checkpoints", "base_speakers", 
 BASE_SPEAKER_CKPT = os.path.join(current_dir, "checkpoints", "base_speakers", "EN", "checkpoint.pth")
 TONE_COLOR_CONFIG = os.path.join(current_dir, "checkpoints", "converter", "config.json")
 TONE_COLOR_CKPT = os.path.join(current_dir, "checkpoints", "converter", "checkpoint.pth")
-SOURCE_SE_PATH = os.path.join(current_dir, "generated", "my_voice_se.pth")
-
+SOURCE_SE_PATH = os.path.join(current_dir, "checkpoints", "base_speakers", "EN", "en_default_se.pth")
 
 class VoiceGenerator:
     def __init__(self, device='cpu'):
@@ -38,14 +38,14 @@ class VoiceGenerator:
         # Generate raw audio
         audio = self.tts.tts(text, None, speaker=speaker, language=language, speed=speed)
 
-        # Save to temp
+        # Save to temp file
         temp_path = "temp.wav"
         sf.write(temp_path, audio, self.tts.hps.data.sampling_rate)
 
-        # Convert
+        # Convert with tone color converter
         self.converter.convert(temp_path, self.source_se, tgt_se, output_path)
 
-        # Cleanup
+        # Cleanup temp file
         os.remove(temp_path)
         return output_path
 
