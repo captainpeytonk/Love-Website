@@ -92,74 +92,59 @@
             font-size: 1.2rem;
         }
 
-        .country-magnet {
-            position: relative;
+        .country-magnet-overlay {
             cursor: pointer;
             transition: all 0.4s ease;
         }
 
-        .country-magnet:hover {
-            transform: scale(1.1);
+        .magnet-animate {
+            animation: magnetOverlayDrop 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5)) 
+                    drop-shadow(0 4px 8px rgba(212, 175, 55, 0.3)) !important;
         }
 
-        .magnet-container {
-            width: 60px;
-            height: 60px;
-            position: relative;
-            animation: magnetDrop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+        .magnet-animate:hover {
+            filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.6)) 
+                    drop-shadow(0 6px 12px rgba(212, 175, 55, 0.4)) 
+                    brightness(1.1) !important;
+            transform: scale(1.02);
         }
 
-        .magnet-container svg {
-            width: 100%;
-            height: 100%;
-            transform: perspective(100px) rotateX(10deg);
-            transition: all 0.3s ease;
-        }
-
-        .magnet-container:hover svg {
-            transform: perspective(100px) rotateX(15deg) scale(1.05);
-            filter: brightness(1.1);
-        }
-
-        @keyframes magnetDrop {
+        @keyframes magnetOverlayDrop {
             0% {
-                transform: translateY(-150px) scale(0.3) rotate(180deg);
                 opacity: 0;
+                transform: translateY(-50px) scale(0.8);
+                filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.8)) 
+                        drop-shadow(0 10px 20px rgba(212, 175, 55, 0.5));
             }
-            30% {
-                transform: translateY(-50px) scale(0.7) rotate(90deg);
+            50% {
                 opacity: 0.7;
-            }
-            60% {
-                transform: translateY(15px) scale(1.1) rotate(10deg);
-                opacity: 1;
+                transform: translateY(5px) scale(1.05);
+                filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.7)) 
+                        drop-shadow(0 7px 15px rgba(212, 175, 55, 0.4));
             }
             80% {
-                transform: translateY(-5px) scale(0.95) rotate(-5deg);
+                opacity: 0.9;
+                transform: translateY(-2px) scale(0.98);
+                filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6)) 
+                        drop-shadow(0 5px 10px rgba(212, 175, 55, 0.35));
             }
             100% {
-                transform: translateY(0) scale(1) rotate(0deg);
                 opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5)) 
+                        drop-shadow(0 4px 8px rgba(212, 175, 55, 0.3));
             }
         }
 
-        /* Add metallic shine effect */
-        .magnet-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, 
-                rgba(255, 255, 255, 0.6) 0%,
-                rgba(255, 255, 255, 0) 20%,
-                rgba(255, 255, 255, 0) 80%,
-                rgba(255, 255, 255, 0.3) 100%);
-            border-radius: 8px;
-            pointer-events: none;
-            opacity: 0.8;
+        /* Enhanced 3D effect with gradient overlay */
+        .country-magnet-overlay path {
+            fill: url(#countryGradient) !important;
+        }
+
+        /* Create metallic gradient effect */
+        svg defs {
+            display: none;
         }
 
         .country-hover {
@@ -304,6 +289,24 @@
                 const response = await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');
                 const countries = await response.json();
                 
+                // Add SVG gradient definition to map
+                const mapContainer = document.getElementById('map');
+                const svgDefs = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svgDefs.style.position = 'absolute';
+                svgDefs.style.width = '0';
+                svgDefs.style.height = '0';
+                svgDefs.innerHTML = `
+                    <defs>
+                        <linearGradient id="countryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.95" />
+                            <stop offset="30%" style="stop-color:#FFED4A;stop-opacity:0.9" />
+                            <stop offset="70%" style="stop-color:#FFA500;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#B8860B;stop-opacity:0.95" />
+                        </linearGradient>
+                    </defs>
+                `;
+                mapContainer.appendChild(svgDefs);
+                
                 // Add countries to map
                 L.geoJSON(countries, {
                     style: defaultStyle,
@@ -330,7 +333,7 @@
                 fallbackDiv.innerHTML = `
                     <h3 style="color: #333; margin-bottom: 15px;">🗺️ Interactive Map Loading...</h3>
                     <p style="color: #666;">The world map will appear here once the geographic data loads.</p>
-                    <p style="color: #999; margin-top: 10px; font-size: 0.9rem;">Click on countries to add golden pins!</p>
+                    <p style="color: #999; margin-top: 10px; font-size: 0.9rem;">Click on countries to collect country-shaped magnets!</p>
                 `;
                 document.getElementById('map').appendChild(fallbackDiv);
             }
@@ -398,7 +401,7 @@
                 visitedCountries.delete(countryName);
                 layer.setStyle(defaultStyle());
                 
-                // Remove pin
+                // Remove magnet overlay
                 if (pins[countryName]) {
                     map.removeLayer(pins[countryName]);
                     delete pins[countryName];
@@ -684,9 +687,9 @@
                     }
                 });
                 
-                // Remove all pins
-                Object.values(pins).forEach(pin => {
-                    map.removeLayer(pin);
+                // Remove all magnet overlays
+                Object.values(pins).forEach(magnetLayer => {
+                    map.removeLayer(magnetLayer);
                 });
                 pins = {};
                 
