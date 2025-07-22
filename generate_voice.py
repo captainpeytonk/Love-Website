@@ -1,19 +1,22 @@
-import sys
 import os
+import sys
 import torch
 import soundfile as sf
 
-# Add the openvoice folder to sys.path so Python can find it
-sys.path.append(os.path.join(os.path.dirname(__file__), 'OpenVoice', 'openvoice'))
+# === Fix for ModuleNotFoundError ===
+# Add OpenVoice/openvoice to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+openvoice_dir = os.path.join(current_dir, 'OpenVoice', 'openvoice')
+sys.path.append(openvoice_dir)
 
 from api import BaseSpeakerTTS, ToneColorConverter
 
-# Adjust these paths to your setup!
-BASE_SPEAKER_CONFIG = "checkpoints/base_speakers/EN/config.json"
-BASE_SPEAKER_CKPT = "checkpoints/base_speakers/EN/checkpoint.pth"
-TONE_COLOR_CONFIG = "checkpoints/converter/config.json"
-TONE_COLOR_CKPT = "checkpoints/converter/checkpoint.pth"
-SOURCE_SE_PATH = "checkpoints/base_speakers/EN/en_default_se.pth"
+# === Paths to models ===
+BASE_SPEAKER_CONFIG = os.path.join(current_dir, "checkpoints", "base_speakers", "EN", "config.json")
+BASE_SPEAKER_CKPT = os.path.join(current_dir, "checkpoints", "base_speakers", "EN", "checkpoint.pth")
+TONE_COLOR_CONFIG = os.path.join(current_dir, "checkpoints", "converter", "config.json")
+TONE_COLOR_CKPT = os.path.join(current_dir, "checkpoints", "converter", "checkpoint.pth")
+SOURCE_SE_PATH = os.path.join(current_dir, "checkpoints", "base_speakers", "EN", "en_default_se.pth")
 
 class VoiceGenerator:
     def __init__(self, device='cpu'):
@@ -30,24 +33,23 @@ class VoiceGenerator:
     def generate(self, text, output_path, speaker='default', language='English', speed=1.0, tgt_se=None):
         if tgt_se is None:
             tgt_se = self.source_se
-        
-        # Generate raw audio (numpy array) with TTS model
+
+        # Generate raw audio
         audio = self.tts.tts(text, None, speaker=speaker, language=language, speed=speed)
 
-        # Save temporary raw audio
-        tmp_path = "temp.wav"
-        sf.write(tmp_path, audio, self.tts.hps.data.sampling_rate)
+        # Save to temp
+        temp_path = "temp.wav"
+        sf.write(temp_path, audio, self.tts.hps.data.sampling_rate)
 
-        # Run tone color conversion
-        self.converter.convert(tmp_path, self.source_se, tgt_se, output_path)
+        # Convert
+        self.converter.convert(temp_path, self.source_se, tgt_se, output_path)
 
-        # Clean temp file
-        os.remove(tmp_path)
-
+        # Cleanup
+        os.remove(temp_path)
         return output_path
 
 
 if __name__ == "__main__":
-    vg = VoiceGenerator(device='cpu')  # or 'cuda:0' if you have GPU
-    out_file = vg.generate("Hello from OpenVoice!", "output.wav")
-    print(f"Generated audio saved to: {out_file}")
+    vg = VoiceGenerator(device='cpu')
+    out = vg.generate("Hello from OpenVoice!", "output.wav")
+    print(f"Generated: {out}")
