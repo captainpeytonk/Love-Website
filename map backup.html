@@ -92,52 +92,74 @@
             font-size: 1.2rem;
         }
 
-        .country-pin {
+        .country-magnet {
             position: relative;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
 
-        .country-pin:hover {
+        .country-magnet:hover {
             transform: scale(1.1);
         }
 
-        .pin-shape {
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(145deg, #ffd700, #b8860b);
-            border: 2px solid #fff;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.3),
-                inset 0 2px 4px rgba(255, 255, 255, 0.3);
-            animation: pinDrop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        .magnet-container {
+            width: 60px;
+            height: 60px;
+            position: relative;
+            animation: magnetDrop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
         }
 
-        .pin-shape::before {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            right: 2px;
-            bottom: 2px;
-            background: linear-gradient(145deg, #ffed4a, #d4af37);
-            border-radius: 50% 50% 50% 0;
+        .magnet-container svg {
+            width: 100%;
+            height: 100%;
+            transform: perspective(100px) rotateX(10deg);
+            transition: all 0.3s ease;
         }
 
-        @keyframes pinDrop {
+        .magnet-container:hover svg {
+            transform: perspective(100px) rotateX(15deg) scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        @keyframes magnetDrop {
             0% {
-                transform: rotate(-45deg) translateY(-100px) scale(0.5);
+                transform: translateY(-150px) scale(0.3) rotate(180deg);
                 opacity: 0;
             }
-            50% {
-                transform: rotate(-45deg) translateY(10px) scale(1.2);
+            30% {
+                transform: translateY(-50px) scale(0.7) rotate(90deg);
+                opacity: 0.7;
             }
-            100% {
-                transform: rotate(-45deg) translateY(0) scale(1);
+            60% {
+                transform: translateY(15px) scale(1.1) rotate(10deg);
                 opacity: 1;
             }
+            80% {
+                transform: translateY(-5px) scale(0.95) rotate(-5deg);
+            }
+            100% {
+                transform: translateY(0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        /* Add metallic shine effect */
+        .magnet-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.6) 0%,
+                rgba(255, 255, 255, 0) 20%,
+                rgba(255, 255, 255, 0) 80%,
+                rgba(255, 255, 255, 0.3) 100%);
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0.8;
         }
 
         .country-hover {
@@ -240,7 +262,7 @@
         </div>
         
         <div class="instruction">
-            💡 Click any country to add a golden pin!
+            💡 Click any country to collect a country-shaped magnet!
         </div>
         
         <button class="reset-button" onclick="resetAllPins()">
@@ -408,17 +430,219 @@
             updateStats();
         }
 
-        // Add golden pin to country
-        function addPin(countryName, layer) {
-            const bounds = layer.getBounds();
-            const center = bounds.getCenter();
+        // Get the main territory center for countries with overseas territories
+        function getMainTerritoryCenter(countryName, layer) {
+            // Special cases for countries with distant territories
+            const mainTerritoryCoords = {
+                'France': [46.2276, 2.2137],
+                'United Kingdom': [54.5973, -3.9533],
+                'United States of America': [39.8283, -98.5795],
+                'Spain': [40.4637, -3.7492],
+                'Portugal': [39.3999, -8.2245],
+                'Netherlands': [52.1326, 5.2913],
+                'Denmark': [56.2639, 9.5018],
+                'Norway': [60.4720, 8.4689],
+                'Chile': [-35.6751, -71.5430],
+                'Ecuador': [-1.8312, -78.1834],
+                'New Zealand': [-40.9006, 174.8860],
+                'Australia': [-25.2744, 133.7751],
+                'Russia': [61.5240, 105.3188],
+                'Turkey': [38.9637, 35.2433],
+                'Italy': [41.8719, 12.5674],
+                'Greece': [39.0742, 21.8243],
+                'Finland': [61.9241, 25.7482],
+                'Japan': [36.2048, 138.2529]
+            };
+
+            if (mainTerritoryCoords[countryName]) {
+                return L.latLng(mainTerritoryCoords[countryName]);
+            }
+
+            // For other countries, find the largest polygon (main territory)
+            if (layer.feature.geometry.type === 'MultiPolygon') {
+                let largestArea = 0;
+                let largestPolygonBounds = null;
+
+                layer.feature.geometry.coordinates.forEach(polygon => {
+                    const tempLayer = L.geoJSON({
+                        type: 'Polygon',
+                        coordinates: polygon
+                    });
+                    const bounds = tempLayer.getBounds();
+                    const area = (bounds.getNorthEast().lat - bounds.getSouthWest().lat) * 
+                                (bounds.getNorthEast().lng - bounds.getSouthWest().lng);
+                    
+                    if (area > largestArea) {
+                        largestArea = area;
+                        largestPolygonBounds = bounds;
+                    }
+                });
+
+                return largestPolygonBounds ? largestPolygonBounds.getCenter() : layer.getBounds().getCenter();
+            }
+
+            return layer.getBounds().getCenter();
+        }
+
+        // Create country-shaped magnet with 3D effect
+        function createCountryMagnet(countryName, layer) {
+            // Get simplified country shape
+            const geoJson = layer.toGeoJSON();
             
-            // Create custom pin icon
+            // Create SVG path from country geometry
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '60');
+            svg.setAttribute('height', '60');
+            svg.setAttribute('viewBox', '0 0 60 60');
+            
+            // Convert geometry to SVG path
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const pathData = geometryToSVGPath(geoJson.geometry);
+            path.setAttribute('d', pathData);
+            
+            // 3D effect with multiple layers
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            
+            // Gradient for 3D effect
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            gradient.setAttribute('id', `gradient-${countryName.replace(/\s+/g, '')}`);
+            gradient.setAttribute('x1', '0%');
+            gradient.setAttribute('y1', '0%');
+            gradient.setAttribute('x2', '100%');
+            gradient.setAttribute('y2', '100%');
+            
+            const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop1.setAttribute('offset', '0%');
+            stop1.setAttribute('stop-color', '#FFD700');
+            
+            const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop2.setAttribute('offset', '50%');
+            stop2.setAttribute('stop-color', '#FFA500');
+            
+            const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop3.setAttribute('offset', '100%');
+            stop3.setAttribute('stop-color', '#B8860B');
+            
+            gradient.appendChild(stop1);
+            gradient.appendChild(stop2);
+            gradient.appendChild(stop3);
+            
+            // Drop shadow filter
+            const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+            filter.setAttribute('id', `shadow-${countryName.replace(/\s+/g, '')}`);
+            
+            const dropShadow = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow');
+            dropShadow.setAttribute('dx', '2');
+            dropShadow.setAttribute('dy', '4');
+            dropShadow.setAttribute('stdDeviation', '3');
+            dropShadow.setAttribute('flood-color', 'rgba(0,0,0,0.4)');
+            
+            filter.appendChild(dropShadow);
+            
+            defs.appendChild(gradient);
+            defs.appendChild(filter);
+            svg.appendChild(defs);
+            
+            // Create shadow layer (bottom)
+            const shadowPath = path.cloneNode(true);
+            shadowPath.setAttribute('fill', 'rgba(0,0,0,0.3)');
+            shadowPath.setAttribute('transform', 'translate(2, 4)');
+            svg.appendChild(shadowPath);
+            
+            // Create main country shape
+            path.setAttribute('fill', `url(#gradient-${countryName.replace(/\s+/g, '')})`);
+            path.setAttribute('stroke', '#B8860B');
+            path.setAttribute('stroke-width', '1');
+            path.setAttribute('filter', `url(#shadow-${countryName.replace(/\s+/g, '')})`);
+            svg.appendChild(path);
+            
+            // Add highlight for 3D effect
+            const highlightPath = path.cloneNode(true);
+            highlightPath.setAttribute('fill', 'rgba(255,255,255,0.3)');
+            highlightPath.setAttribute('stroke', 'none');
+            highlightPath.setAttribute('transform', 'translate(-1, -1)');
+            svg.appendChild(highlightPath);
+            
+            return svg.outerHTML;
+        }
+
+        // Convert GeoJSON geometry to SVG path
+        function geometryToSVGPath(geometry) {
+            let path = '';
+            
+            function processCoordinates(coords, isHole = false) {
+                if (coords.length === 0) return '';
+                
+                // Normalize coordinates to fit in 60x60 viewBox
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                coords.forEach(coord => {
+                    minX = Math.min(minX, coord[0]);
+                    maxX = Math.max(maxX, coord[0]);
+                    minY = Math.min(minY, coord[1]);
+                    maxY = Math.max(maxY, coord[1]);
+                });
+                
+                const scaleX = 50 / (maxX - minX);
+                const scaleY = 50 / (maxY - minY);
+                const scale = Math.min(scaleX, scaleY);
+                const offsetX = 5 + (50 - (maxX - minX) * scale) / 2;
+                const offsetY = 5 + (50 - (maxY - minY) * scale) / 2;
+                
+                let pathData = '';
+                coords.forEach((coord, i) => {
+                    const x = (coord[0] - minX) * scale + offsetX;
+                    const y = 55 - ((coord[1] - minY) * scale + offsetY); // Flip Y axis
+                    
+                    if (i === 0) {
+                        pathData += `M ${x} ${y}`;
+                    } else {
+                        pathData += ` L ${x} ${y}`;
+                    }
+                });
+                pathData += ' Z';
+                
+                return pathData;
+            }
+            
+            if (geometry.type === 'Polygon') {
+                path = processCoordinates(geometry.coordinates[0]);
+            } else if (geometry.type === 'MultiPolygon') {
+                // Use the largest polygon
+                let largestPolygon = geometry.coordinates[0];
+                let largestArea = 0;
+                
+                geometry.coordinates.forEach(polygon => {
+                    const coords = polygon[0];
+                    let area = 0;
+                    for (let i = 0; i < coords.length - 1; i++) {
+                        area += coords[i][0] * coords[i + 1][1] - coords[i + 1][0] * coords[i][1];
+                    }
+                    area = Math.abs(area) / 2;
+                    
+                    if (area > largestArea) {
+                        largestArea = area;
+                        largestPolygon = polygon;
+                    }
+                });
+                
+                path = processCoordinates(largestPolygon[0]);
+            }
+            
+            return path;
+        }
+
+        // Add country-shaped magnet pin
+        function addPin(countryName, layer) {
+            const center = getMainTerritoryCenter(countryName, layer);
+            
+            // Create country-shaped magnet
+            const magnetHTML = createCountryMagnet(countryName, layer);
+            
             const pinIcon = L.divIcon({
-                className: 'country-pin',
-                html: '<div class="pin-shape"></div>',
-                iconSize: [30, 30],
-                iconAnchor: [15, 30]
+                className: 'country-magnet',
+                html: `<div class="magnet-container">${magnetHTML}</div>`,
+                iconSize: [60, 60],
+                iconAnchor: [30, 30]
             });
             
             const pin = L.marker(center, { 
@@ -427,9 +651,9 @@
             }).addTo(map);
             
             pin.bindPopup(`
-                <div style="text-align: center; padding: 10px;">
-                    <h4 style="margin: 0 0 10px 0; color: #D4AF37;">🏆 ${countryName}</h4>
-                    <p style="margin: 0; color: #666;">Visited! Well done!</p>
+                <div style="text-align: center; padding: 15px;">
+                    <h4 style="margin: 0 0 10px 0; color: #D4AF37;">🧲 ${countryName}</h4>
+                    <p style="margin: 0; color: #666;">Collected as a fridge magnet!</p>
                 </div>
             `);
             
