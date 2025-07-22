@@ -1,7 +1,12 @@
+import sys
 import os
 import torch
 import soundfile as sf
-from openvoice.api import BaseSpeakerTTS, ToneColorConverter
+
+# Add the openvoice folder to sys.path so Python can find it
+sys.path.append(os.path.join(os.path.dirname(__file__), 'OpenVoice', 'openvoice'))
+
+from api import BaseSpeakerTTS, ToneColorConverter
 
 # Adjust these paths to your setup!
 BASE_SPEAKER_CONFIG = "checkpoints/base_speakers/EN/config.json"
