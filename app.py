@@ -20,12 +20,12 @@ def speak():
     output_path = os.path.join(GENERATED_DIR, f"{audio_id}.wav")
 
     # Replace this with the actual OpenVoice command or function call
-    subprocess.run([
-        "python", "OpenVoice/inference.py",
-        "--text", text,
-        "--reference_audio", "OpenVoice/inference/my_voice.wav",
-        "--output_path", output_path
-    ])
+subprocess.run([
+    "python", "OpenVoice/demo_part1.py",
+    "--text", text,
+    "--reference_audio", "OpenVoice/resources/reference_audio/your_voice.wav",
+    "--output_path", output_path
+])
 
     return jsonify({"url": f"http://localhost:5000/audio/{audio_id}.wav"})
 
