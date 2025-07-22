@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldSpots - Share Your World</title>
+    <title>World Pin Board - Collect Your Travels</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <style>
         * {
@@ -15,358 +15,115 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+        }
+
+        .map-container {
+            flex: 1;
             position: relative;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .tab-switcher {
-            display: flex;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            padding: 4px;
-            gap: 4px;
-        }
-
-        .tab-btn {
-            padding: 8px 16px;
-            border: none;
+            margin: 20px;
             border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            background: transparent;
-            color: #666;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
-        }
-
-        .upload-btn, .collect-btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .upload-btn:hover, .collect-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .collect-btn {
-            background: linear-gradient(45deg, #f093fb, #f5576c);
-            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
-        }
-
-        .collect-btn:hover {
-            box-shadow: 0 6px 25px rgba(245, 87, 108, 0.4);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
         #map {
-            width: 100%;
-            height: calc(100vh - 80px);
-            z-index: 1;
-        }
-
-        .upload-modal, .collect-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(5px);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
+            min-height: 600px;
         }
 
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: modalSlideIn 0.3s ease-out;
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-header {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
-            color: #333;
-            text-align: center;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .file-input {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .file-input input[type=file] {
+        .stats-panel {
             position: absolute;
-            left: -9999px;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            min-width: 200px;
         }
 
-        .file-input-label {
-            background: linear-gradient(45deg, #f093fb, #f5576c);
-            color: white;
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-            display: block;
-            transition: all 0.3s ease;
-        }
-
-        .file-input-label:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 1.5rem;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #666;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .leaflet-popup-content-wrapper {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border: none;
-        }
-
-        .leaflet-popup-tip {
-            background: white;
-            box-shadow: 0 3px 14px rgba(0,0,0,0.15);
-        }
-
-        .popup-content {
-            padding: 0;
-            margin: 0;
-            min-width: 280px;
-        }
-
-        .popup-media {
-            width: 100%;
-            max-height: 250px;
-            object-fit: contain;
-            display: block;
-            border-radius: 12px 12px 0 0;
-            background: #f8f9fa;
-        }
-
-        .popup-details {
-            padding: 1rem;
-        }
-
-        .popup-title {
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
+        .stats-panel h3 {
             color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
         }
 
-        .popup-description {
-            color: #666;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            margin-bottom: 0.8rem;
-        }
-
-        .location-info {
-            background: #f8f9fa;
-            padding: 0.4rem 0.6rem;
-            margin: 0.2rem 0;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            color: #666;
-            display: inline-block;
-        }
-
-        .custom-marker {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        .stat-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
 
-        .custom-marker:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+        .stat-item:last-child {
+            border-bottom: none;
         }
 
-        .marker-him {
-            background: linear-gradient(45deg, #ff4757, #ff3742);
-        }
-
-        .marker-her {
-            background: linear-gradient(45deg, #3742fa, #2f3542);
-        }
-
-        .marker-together {
-            background: linear-gradient(45deg, #2ed573, #1e90ff);
-        }
-
-        .marker-upload {
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
-            border-color: #ffffff;
+        .stat-value {
             font-weight: bold;
+            color: #d4af37;
+            font-size: 1.2rem;
         }
 
-        /* Country Collection Pin Styles */
         .country-pin {
-            width: 40px;
-            height: 50px;
             position: relative;
             cursor: pointer;
             transition: all 0.3s ease;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
         }
 
         .country-pin:hover {
-            transform: scale(1.1) translateY(-3px);
-            filter: drop-shadow(0 8px 25px rgba(0,0,0,0.4));
+            transform: scale(1.1);
         }
 
-        .pin-base {
-            width: 40px;
-            height: 40px;
+        .pin-shape {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(145deg, #ffd700, #b8860b);
+            border: 2px solid #fff;
             border-radius: 50% 50% 50% 0;
             transform: rotate(-45deg);
-            background: linear-gradient(135deg, #ffd700, #ffed4a);
-            border: 3px solid #b7791f;
-            position: relative;
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3);
             animation: pinDrop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        .pin-tip {
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 12px solid #b7791f;
+        .pin-shape::before {
+            content: '';
             position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .pin-flag {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(45deg);
-            font-size: 16px;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: linear-gradient(145deg, #ffed4a, #d4af37);
+            border-radius: 50% 50% 50% 0;
         }
 
         @keyframes pinDrop {
@@ -375,8 +132,7 @@
                 opacity: 0;
             }
             50% {
-                transform: rotate(-45deg) translateY(-5px) scale(1.1);
-                opacity: 1;
+                transform: rotate(-45deg) translateY(10px) scale(1.2);
             }
             100% {
                 transform: rotate(-45deg) translateY(0) scale(1);
@@ -384,459 +140,347 @@
             }
         }
 
-        .upload-instruction, .collect-instruction {
+        .country-hover {
+            fill-opacity: 0.7 !important;
+            stroke: #ffd700 !important;
+            stroke-width: 2 !important;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .country-visited {
+            fill: #d4af37 !important;
+            fill-opacity: 0.3 !important;
+            stroke: #b8860b !important;
+            stroke-width: 2 !important;
+        }
+
+        .reset-button {
             position: absolute;
-            top: 90px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, #ff6b6b, #ee5a52);
             color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            z-index: 1001;
-            display: none;
-            animation: fadeInOut 3s ease-in-out;
-        }
-
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; }
-            20%, 80% { opacity: 1; }
-        }
-
-        .leaflet-container {
-            border-radius: 0;
-        }
-
-        /* Custom leaflet controls styling */
-        .leaflet-control-zoom a {
-            background: rgba(255,255,255,0.9) !important;
-            border: none !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-        }
-
-        .leaflet-control-attribution {
-            background: rgba(255,255,255,0.8) !important;
-            border-radius: 5px !important;
-        }
-
-        /* Country search */
-        .country-search {
-            width: 100%;
-            margin-bottom: 1rem;
-        }
-
-        .country-list {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-        }
-
-        .country-item {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            box-shadow: 0 8px 20px rgba(238, 90, 82, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
         }
 
-        .country-item:hover {
-            background: #f8f9fa;
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(238, 90, 82, 0.4);
         }
 
-        .country-item:last-child {
-            border-bottom: none;
+        .instruction {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            color: #333;
+            font-weight: 500;
         }
 
-        .country-item.visited {
-            background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(255, 237, 74, 0.1));
-            border-left: 4px solid #ffd700;
+        @media (max-width: 768px) {
+            .stats-panel {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 20px;
+                margin-bottom: 0;
+            }
+            
+            .map-container {
+                margin-top: 0;
+            }
+            
+            .instruction,
+            .reset-button {
+                position: relative;
+                margin: 10px 20px;
+                bottom: auto;
+                left: auto;
+                right: auto;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">🌍 WorldSpots</div>
-        <div class="header-controls">
-            <div class="tab-switcher">
-                <button class="tab-btn active" onclick="switchTab('media')">📸 Media</button>
-                <button class="tab-btn" onclick="switchTab('collect')">📍 Collect</button>
-            </div>
-            <button class="upload-btn" id="mediaBtn" onclick="toggleUploadMode()">
-                📸 Add Media
-            </button>
-            <button class="collect-btn" id="collectBtn" onclick="toggleCollectMode()" style="display: none;">
-                🌎 Add Country
-            </button>
-        </div>
-    </div>
-    
-    <div class="upload-instruction" id="uploadInstruction">
-        📍 Click anywhere on the map to place your media
-    </div>
-    
-    <div class="collect-instruction" id="collectInstruction">
-        🌎 Click on a country to mark it as visited
-    </div>
-    
-    <div id="map"></div>
-
-    <!-- Media Upload Modal -->
-    <div class="upload-modal" id="uploadModal">
-        <div class="modal-content">
-            <div class="modal-header">📍 Add Media to Location</div>
-            <form id="uploadForm">
-                <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" id="mediaTitle" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="mediaDescription" rows="3"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Choose Photo or Video</label>
-                    <div class="file-input">
-                        <input type="file" id="mediaFile" accept="image/*,video/*" required>
-                        <label for="mediaFile" class="file-input-label">
-                            🖼️ Select Media File
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Category</label>
-                    <select id="mediaCategory" required>
-                        <option value="">Select category</option>
-                        <option value="him">Him</option>
-                        <option value="her">Her</option>
-                        <option value="together">Together</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Location</label>
-                    <input type="text" id="locationName" placeholder="Click on map to set location" readonly>
-                </div>
-                
-                <div class="modal-buttons">
-                    <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add to Map</button>
-                </div>
-            </form>
-        </div>
+        <h1>🌍 World Pin Board</h1>
+        <p>Click on countries to mark them as visited and collect golden pins!</p>
     </div>
 
-    <!-- Country Collection Modal -->
-    <div class="collect-modal" id="collectModal">
-        <div class="modal-content">
-            <div class="modal-header">🌎 Add Country to Collection</div>
-            <div class="form-group">
-                <label>Search Countries</label>
-                <input type="text" id="countrySearch" class="country-search" placeholder="Type to search countries...">
+    <div class="map-container">
+        <div id="map"></div>
+        
+        <div class="stats-panel">
+            <h3>📊 Your Journey</h3>
+            <div class="stat-item">
+                <span>Countries Visited:</span>
+                <span class="stat-value" id="visitedCount">0</span>
             </div>
-            <div class="country-list" id="countryList">
-                <!-- Countries will be populated here -->
+            <div class="stat-item">
+                <span>Total Countries:</span>
+                <span class="stat-value" id="totalCount">195</span>
             </div>
-            <div class="modal-buttons">
-                <button type="button" class="btn btn-secondary" onclick="closeCollectModal()">Cancel</button>
+            <div class="stat-item">
+                <span>Progress:</span>
+                <span class="stat-value" id="progressPercent">0%</span>
             </div>
         </div>
+        
+        <div class="instruction">
+            💡 Click any country to add a golden pin!
+        </div>
+        
+        <button class="reset-button" onclick="resetAllPins()">
+            🔄 Reset All Pins
+        </button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script>
         let map;
-        let markers = [];
-        let countryPins = [];
-        let mediaData = [];
-        let visitedCountries = [];
-        let selectedLocation = null;
-        let uploadMarker = null;
-        let uploadMode = false;
-        let collectMode = false;
-        let currentTab = 'media';
+        let visitedCountries = new Set();
+        let countryLayers = {};
+        let pins = {};
 
-        // Country data with coordinates and flags
-        const countries = [
-            { name: "United States", code: "US", flag: "🇺🇸", lat: 39.8283, lng: -98.5795 },
-            { name: "United Kingdom", code: "GB", flag: "🇬🇧", lat: 55.3781, lng: -3.4360 },
-            { name: "China", code: "CN", flag: "🇨🇳", lat: 35.8617, lng: 104.1954 },
-            { name: "Japan", code: "JP", flag: "🇯🇵", lat: 36.2048, lng: 138.2529 },
-            { name: "Germany", code: "DE", flag: "🇩🇪", lat: 51.1657, lng: 10.4515 },
-            { name: "France", code: "FR", flag: "🇫🇷", lat: 46.6034, lng: 1.8883 },
-            { name: "Italy", code: "IT", flag: "🇮🇹", lat: 41.8719, lng: 12.5674 },
-            { name: "Spain", code: "ES", flag: "🇪🇸", lat: 40.4637, lng: -3.7492 },
-            { name: "Canada", code: "CA", flag: "🇨🇦", lat: 56.1304, lng: -106.3468 },
-            { name: "Australia", code: "AU", flag: "🇦🇺", lat: -25.2744, lng: 133.7751 },
-            { name: "Brazil", code: "BR", flag: "🇧🇷", lat: -14.2350, lng: -51.9253 },
-            { name: "India", code: "IN", flag: "🇮🇳", lat: 20.5937, lng: 78.9629 },
-            { name: "Russia", code: "RU", flag: "🇷🇺", lat: 61.5240, lng: 105.3188 },
-            { name: "Mexico", code: "MX", flag: "🇲🇽", lat: 23.6345, lng: -102.5528 },
-            { name: "South Korea", code: "KR", flag: "🇰🇷", lat: 35.9078, lng: 127.7669 },
-            { name: "Netherlands", code: "NL", flag: "🇳🇱", lat: 52.1326, lng: 5.2913 },
-            { name: "Switzerland", code: "CH", flag: "🇨🇭", lat: 46.8182, lng: 8.2275 },
-            { name: "Sweden", code: "SE", flag: "🇸🇪", lat: 60.1282, lng: 18.6435 },
-            { name: "Norway", code: "NO", flag: "🇳🇴", lat: 60.4720, lng: 8.4689 },
-            { name: "Thailand", code: "TH", flag: "🇹🇭", lat: 15.8700, lng: 100.9925 },
-            { name: "Singapore", code: "SG", flag: "🇸🇬", lat: 1.3521, lng: 103.8198 },
-            { name: "Egypt", code: "EG", flag: "🇪🇬", lat: 26.0975, lng: 31.2357 },
-            { name: "Turkey", code: "TR", flag: "🇹🇷", lat: 38.9637, lng: 35.2433 },
-            { name: "Greece", code: "GR", flag: "🇬🇷", lat: 39.0742, lng: 21.8243 },
-            { name: "Portugal", code: "PT", flag: "🇵🇹", lat: 39.3999, lng: -8.2245 },
-            { name: "South Africa", code: "ZA", flag: "🇿🇦", lat: -30.5595, lng: 22.9375 },
-            { name: "Argentina", code: "AR", flag: "🇦🇷", lat: -38.4161, lng: -63.6167 },
-            { name: "Chile", code: "CL", flag: "🇨🇱", lat: -35.6751, lng: -71.5430 },
-            { name: "New Zealand", code: "NZ", flag: "🇳🇿", lat: -40.9006, lng: 174.8860 },
-            { name: "Indonesia", code: "ID", flag: "🇮🇩", lat: -0.7893, lng: 113.9213 }
-        ];
-
-        // Initialize map
+        // Initialize the map
         function initMap() {
             map = L.map('map', {
-                zoomControl: true,
-                attributionControl: true
-            }).setView([20, 0], 3);
+                center: [20, 0],
+                zoom: 2,
+                maxZoom: 6,
+                minZoom: 1.5,
+                worldCopyJump: true
+            });
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 18,
+            // Add a beautiful tile layer
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CARTO',
+                subdomains: 'abcd',
+                maxZoom: 19
             }).addTo(map);
 
-            map.on('click', onMapClick);
-            loadMediaData();
-            loadVisitedCountries();
-            populateCountryList();
+            // Load country boundaries
+            loadCountries();
         }
 
-        function switchTab(tab) {
-            currentTab = tab;
-            const tabs = document.querySelectorAll('.tab-btn');
-            const mediaBtn = document.getElementById('mediaBtn');
-            const collectBtn = document.getElementById('collectBtn');
-
-            tabs.forEach(t => t.classList.remove('active'));
-            
-            if (tab === 'media') {
-                tabs[0].classList.add('active');
-                mediaBtn.style.display = 'block';
-                collectBtn.style.display = 'none';
-                showMediaMarkers();
-                hideCountryPins();
+        // Load country GeoJSON data
+        async function loadCountries() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');
+                const countries = await response.json();
                 
-                // Reset modes
-                if (collectMode) toggleCollectMode();
-            } else {
-                tabs[1].classList.add('active');
-                mediaBtn.style.display = 'none';
-                collectBtn.style.display = 'block';
-                hideMediaMarkers();
-                showCountryPins();
+                // Add countries to map
+                L.geoJSON(countries, {
+                    style: defaultStyle,
+                    onEachFeature: onEachFeature
+                }).addTo(map);
                 
-                // Reset modes
-                if (uploadMode) toggleUploadMode();
-            }
-        }
-
-        function showMediaMarkers() {
-            markers.forEach(marker => {
-                if (!map.hasLayer(marker)) {
-                    map.addLayer(marker);
-                }
-            });
-        }
-
-        function hideMediaMarkers() {
-            markers.forEach(marker => {
-                if (map.hasLayer(marker)) {
-                    map.removeLayer(marker);
-                }
-            });
-        }
-
-        function showCountryPins() {
-            countryPins.forEach(pin => {
-                if (!map.hasLayer(pin)) {
-                    map.addLayer(pin);
-                }
-            });
-        }
-
-        function hideCountryPins() {
-            countryPins.forEach(pin => {
-                if (map.hasLayer(pin)) {
-                    map.removeLayer(pin);
-                }
-            });
-        }
-
-        function onMapClick(e) {
-            if (uploadMode && currentTab === 'media') {
-                setUploadLocation(e.latlng);
-            }
-        }
-
-        function toggleUploadMode() {
-            uploadMode = !uploadMode;
-            const btn = document.getElementById('mediaBtn');
-            const instruction = document.getElementById('uploadInstruction');
-            
-            if (uploadMode) {
-                btn.textContent = '❌ Cancel Upload';
-                btn.style.background = 'linear-gradient(45deg, #f5576c, #f093fb)';
-                map.getContainer().style.cursor = 'crosshair';
-                instruction.style.display = 'block';
-                setTimeout(() => {
-                    instruction.style.display = 'none';
-                }, 3000);
-            } else {
-                btn.textContent = '📸 Add Media';
-                btn.style.background = 'linear-gradient(45deg, #667eea, #764ba2)';
-                map.getContainer().style.cursor = '';
-                instruction.style.display = 'none';
-                closeUploadModal();
-            }
-        }
-
-        function toggleCollectMode() {
-            collectMode = !collectMode;
-            
-            if (collectMode) {
-                openCollectModal();
-            } else {
-                closeCollectModal();
-            }
-        }
-
-        function openUploadModal() {
-            document.getElementById('uploadModal').style.display = 'flex';
-        }
-
-        function closeUploadModal() {
-            document.getElementById('uploadModal').style.display = 'none';
-            document.getElementById('uploadForm').reset();
-            selectedLocation = null;
-            if (uploadMarker) {
-                map.removeLayer(uploadMarker);
-                uploadMarker = null;
-            }
-            document.querySelector('.file-input-label').textContent = '🖼️ Select Media File';
-        }
-
-        function openCollectModal() {
-            document.getElementById('collectModal').style.display = 'flex';
-            document.getElementById('countrySearch').focus();
-        }
-
-        function closeCollectModal() {
-            document.getElementById('collectModal').style.display = 'none';
-            document.getElementById('countrySearch').value = '';
-            populateCountryList();
-            collectMode = false;
-        }
-
-        function populateCountryList() {
-            const listContainer = document.getElementById('countryList');
-            const searchTerm = document.getElementById('countrySearch').value.toLowerCase();
-            
-            const filteredCountries = countries.filter(country => 
-                country.name.toLowerCase().includes(searchTerm)
-            );
-
-            listContainer.innerHTML = '';
-            filteredCountries.forEach(country => {
-                const item = document.createElement('div');
-                item.className = 'country-item';
-                if (visitedCountries.includes(country.code)) {
-                    item.classList.add('visited');
-                }
-                
-                item.innerHTML = `
-                    <span style="font-size: 1.5rem;">${country.flag}</span>
-                    <span>${country.name}</span>
-                    ${visitedCountries.includes(country.code) ? '<span style="margin-left: auto; color: #ffd700;">✓ Visited</span>' : ''}
+                updateStats();
+            } catch (error) {
+                console.error('Error loading country data:', error);
+                // Fallback message
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(255, 255, 255, 0.95);
+                    padding: 30px;
+                    border-radius: 15px;
+                    text-align: center;
+                    z-index: 1000;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                 `;
-                
-                item.onclick = () => addCountryToCollection(country);
-                listContainer.appendChild(item);
-            });
-        }
-
-        function addCountryToCollection(country) {
-            if (!visitedCountries.includes(country.code)) {
-                visitedCountries.push(country.code);
-                addCountryPin(country);
-                saveVisitedCountries();
-                populateCountryList();
+                fallbackDiv.innerHTML = `
+                    <h3 style="color: #333; margin-bottom: 15px;">🗺️ Interactive Map Loading...</h3>
+                    <p style="color: #666;">The world map will appear here once the geographic data loads.</p>
+                    <p style="color: #999; margin-top: 10px; font-size: 0.9rem;">Click on countries to add golden pins!</p>
+                `;
+                document.getElementById('map').appendChild(fallbackDiv);
             }
-            closeCollectModal();
         }
 
-        function addCountryPin(country) {
-            const pinHtml = `
-                <div class="country-pin">
-                    <div class="pin-base">
-                        <div class="pin-flag">${country.flag}</div>
-                    </div>
-                    <div class="pin-tip"></div>
-                </div>
-            `;
+        // Default country styling
+        function defaultStyle(feature) {
+            return {
+                fillColor: '#8FB3D3',
+                weight: 1,
+                opacity: 1,
+                color: '#5F84A2',
+                fillOpacity: 0.7
+            };
+        }
 
-            const pin = L.marker([country.lat, country.lng], {
-                icon: L.divIcon({
-                    html: pinHtml,
-                    className: 'custom-div-icon',
-                    iconSize: [40, 50],
-                    iconAnchor: [20, 50]
-                })
+        // Handle country interactions
+        function onEachFeature(feature, layer) {
+            const countryName = feature.properties.name || feature.properties.NAME || 'Unknown';
+            countryLayers[countryName] = layer;
+            
+            layer.on({
+                mouseover: function(e) {
+                    if (!visitedCountries.has(countryName)) {
+                        e.target.setStyle({
+                            fillColor: '#FFD700',
+                            fillOpacity: 0.8,
+                            weight: 2,
+                            color: '#B8860B'
+                        });
+                        
+                        // Add hover class for additional effects
+                        if (e.target._path) {
+                            e.target._path.classList.add('country-hover');
+                        }
+                    }
+                },
+                mouseout: function(e) {
+                    if (!visitedCountries.has(countryName)) {
+                        layer.setStyle(defaultStyle());
+                        
+                        // Remove hover class
+                        if (e.target._path) {
+                            e.target._path.classList.remove('country-hover');
+                        }
+                    }
+                },
+                click: function(e) {
+                    toggleCountry(countryName, layer);
+                }
             });
 
-            const popupContent = `
-                <div class="popup-content">
-                    <div class="popup-details">
-                        <div class="popup-title">${country.flag} ${country.name}</div>
-                        <div class="popup-description">You've been to this country!</div>
-                        <div class="location-info">📍 Collected</div>
-                        <div class="location-info">🏆 Achievement Unlocked</div>
-                    </div>
-                </div>
-            `;
-
-            pin.bindPopup(popupContent, {
-                maxWidth: 300,
-                className: 'custom-popup'
+            // Tooltip
+            layer.bindTooltip(countryName, {
+                permanent: false,
+                direction: 'top',
+                className: 'country-tooltip'
             });
+        }
 
-            if (currentTab === 'collect') {
-                pin.addTo(map);
+        // Toggle country visited status
+        function toggleCountry(countryName, layer) {
+            if (visitedCountries.has(countryName)) {
+                // Remove from visited
+                visitedCountries.delete(countryName);
+                layer.setStyle(defaultStyle());
+                
+                // Remove pin
+                if (pins[countryName]) {
+                    map.removeLayer(pins[countryName]);
+                    delete pins[countryName];
+                }
+                
+                // Remove visited class
+                if (layer._path) {
+                    layer._path.classList.remove('country-visited');
+                }
+            } else {
+                // Add to visited
+                visitedCountries.add(countryName);
+                layer.setStyle({
+                    fillColor: '#D4AF37',
+                    fillOpacity: 0.3,
+                    weight: 2,
+                    color: '#B8860B'
+                });
+                
+                // Add visited class
+                if (layer._path) {
+                    layer._path.classList.add('country-visited');
+                }
+                
+                // Add pin
+                addPin(countryName, layer);
             }
             
-            countryPins.push(pin);
+            updateStats();
         }
 
-        function setUploadLocation(latlng) {
-            selectedLocation =
+        // Add golden pin to country
+        function addPin(countryName, layer) {
+            const bounds = layer.getBounds();
+            const center = bounds.getCenter();
+            
+            // Create custom pin icon
+            const pinIcon = L.divIcon({
+                className: 'country-pin',
+                html: '<div class="pin-shape"></div>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 30]
+            });
+            
+            const pin = L.marker(center, { 
+                icon: pinIcon,
+                zIndexOffset: 1000
+            }).addTo(map);
+            
+            pin.bindPopup(`
+                <div style="text-align: center; padding: 10px;">
+                    <h4 style="margin: 0 0 10px 0; color: #D4AF37;">🏆 ${countryName}</h4>
+                    <p style="margin: 0; color: #666;">Visited! Well done!</p>
+                </div>
+            `);
+            
+            pins[countryName] = pin;
+        }
 
-    function saveVisitedCountries() {
-    localStorage.setItem('visitedCountries', JSON.stringify(visitedCountries));
-}
+        // Update statistics
+        function updateStats() {
+            const visited = visitedCountries.size;
+            const total = Object.keys(countryLayers).length;
+            const percentage = total > 0 ? Math.round((visited / total) * 100) : 0;
+            
+            document.getElementById('visitedCount').textContent = visited;
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('progressPercent').textContent = percentage + '%';
+        }
 
-function loadVisitedCountries() {
-    const stored = localStorage.getItem('visitedCountries');
-    if (stored) {
-        visitedCountries = JSON.parse(stored);
-        visitedCountries.forEach(code => {
-            const country = countries.find(c => c.code === code);
-            if (country) addCountryPin(country);
+        // Reset all pins
+        function resetAllPins() {
+            if (confirm('Are you sure you want to reset all your pins? This cannot be undone.')) {
+                visitedCountries.clear();
+                
+                // Reset all country styles
+                Object.values(countryLayers).forEach(layer => {
+                    layer.setStyle(defaultStyle());
+                    if (layer._path) {
+                        layer._path.classList.remove('country-visited');
+                    }
+                });
+                
+                // Remove all pins
+                Object.values(pins).forEach(pin => {
+                    map.removeLayer(pin);
+                });
+                pins = {};
+                
+                updateStats();
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
         });
-    }
-}
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (map) {
+                map.invalidateSize();
+            }
+        });
     </script>
 </body>
 </html>
