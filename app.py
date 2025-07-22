@@ -34,4 +34,15 @@ def audio(filename):
     return send_from_directory(GENERATED_DIR, filename)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    vg = VoiceGenerator(device='cpu')
+    
+    # Path to your voice embedding file (.pth)
+    my_voice_emb_path = os.path.join(os.path.dirname(__file__), 'generated', 'my_voice_long.pth')
+    
+    # Load your embedding tensor
+    my_voice_embedding = torch.load(my_voice_emb_path).to('cpu')
+    
+    # Pass your voice embedding as tgt_se
+    out = vg.generate("Hello from OpenVoice with my voice!", "output_myvoice.wav", tgt_se=my_voice_embedding)
+    
+    print(f"Generated: {out}")
