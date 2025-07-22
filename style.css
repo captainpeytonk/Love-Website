@@ -1,0 +1,14 @@
+body {
+  font-family: sans-serif;
+  padding: 40px;
+  background: #f8f9fa;
+}
+textarea {
+  width: 300px;
+  height: 100px;
+  font-size: 16px;
+}
+button {
+  margin-top: 10px;
+  padding: 10px;
+}
