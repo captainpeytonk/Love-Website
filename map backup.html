@@ -822,3 +822,18 @@
 
         function setUploadLocation(latlng) {
             selectedLocation =
+
+    function saveVisitedCountries() {
+    localStorage.setItem('visitedCountries', JSON.stringify(visitedCountries));
+}
+
+function loadVisitedCountries() {
+    const stored = localStorage.getItem('visitedCountries');
+    if (stored) {
+        visitedCountries = JSON.parse(stored);
+        visitedCountries.forEach(code => {
+            const country = countries.find(c => c.code === code);
+            if (country) addCountryPin(country);
+        });
+    }
+}
