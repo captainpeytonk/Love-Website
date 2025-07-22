@@ -16,7 +16,8 @@ BASE_SPEAKER_CONFIG = os.path.join(current_dir, "checkpoints", "base_speakers", 
 BASE_SPEAKER_CKPT = os.path.join(current_dir, "checkpoints", "base_speakers", "EN", "checkpoint.pth")
 TONE_COLOR_CONFIG = os.path.join(current_dir, "checkpoints", "converter", "config.json")
 TONE_COLOR_CKPT = os.path.join(current_dir, "checkpoints", "converter", "checkpoint.pth")
-SOURCE_SE_PATH = os.path.join(current_dir, "checkpoints", "base_speakers", "EN", "en_default_se.pth")
+SOURCE_SE_PATH = os.path.join(current_dir, "generated", "my_voice_se.pth")
+
 
 class VoiceGenerator:
     def __init__(self, device='cpu'):
