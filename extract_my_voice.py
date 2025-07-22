@@ -3,7 +3,7 @@ import sys
 import torch
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-openvoice_dir = os.path.join(current_dir, 'OpenVoice', 'openvoice')  # Adjust if needed
+openvoice_dir = os.path.join(current_dir, 'openvoice')  # Adjust if needed
 
 if openvoice_dir not in sys.path:
     sys.path.insert(0, openvoice_dir)  # Use insert to prioritize local openvoice
