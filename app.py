@@ -5,7 +5,7 @@ import uuid
 import subprocess
 
 app = Flask(__name__)
-CORS(app)  # 🚀 Enables cross-origin requests
+CORS(app)
 
 GENERATED_DIR = "generated"
 os.makedirs(GENERATED_DIR, exist_ok=True)
@@ -25,7 +25,6 @@ def speak():
     ])
 
     return jsonify({"url": f"http://localhost:5000/audio/{audio_id}.wav"})
-
 
 @app.route('/audio/<filename>')
 def audio(filename):
