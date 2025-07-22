@@ -4,7 +4,10 @@ import uuid
 import subprocess
 
 app = Flask(__name__)
+CORS(app)  # 🚀 Enables cross-origin requests
+
 GENERATED_DIR = "generated"
+os.makedirs(GENERATED_DIR, exist_ok=True)
 
 os.makedirs(GENERATED_DIR, exist_ok=True)
 
