@@ -46,4 +46,4 @@ class VoiceGenerator:
 
 if __name__ == "__main__":
     vg = VoiceGenerator(device='cpu')
-    out = vg.generate("Hello from Open
+    out = vg.generate("Hello from OpenVoice!", "output.wav")
