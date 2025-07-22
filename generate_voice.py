@@ -1,15 +1,16 @@
-import os
+import import os
 import sys
 import torch
 import soundfile as sf
 
-# === Fix for ModuleNotFoundError / ImportError ===
-# Add local openvoice folder to sys.path with highest priority
+# Add the 'openvoice' folder to sys.path (relative to backend)
 current_dir = os.path.dirname(os.path.abspath(__file__))
-openvoice_dir = os.path.join(current_dir, 'OpenVoice', 'openvoice')
-if openvoice_dir not in sys.path:
-    sys.path.insert(0, openvoice_dir)  # Insert at front to override any global api packages
+openvoice_dir = os.path.join(current_dir, "openvoice")
 
+if openvoice_dir not in sys.path:
+    sys.path.insert(0, openvoice_dir)
+
+# Now import from openvoice.api (your local module)
 from api import BaseSpeakerTTS, ToneColorConverter
 
 # === Paths to models ===
@@ -28,24 +29,19 @@ class VoiceGenerator:
         self.converter = ToneColorConverter(TONE_COLOR_CONFIG, device=device)
         self.converter.load_ckpt(TONE_COLOR_CKPT)
 
-        # Load source speaker embedding
         self.source_se = torch.load(SOURCE_SE_PATH).to(device)
 
     def generate(self, text, output_path, speaker='default', language='English', speed=1.0, tgt_se=None):
         if tgt_se is None:
             tgt_se = self.source_se
 
-        # Generate raw audio
         audio = self.tts.tts(text, None, speaker=speaker, language=language, speed=speed)
 
-        # Save to temp file
         temp_path = "temp.wav"
         sf.write(temp_path, audio, self.tts.hps.data.sampling_rate)
 
-        # Convert with tone color converter
         self.converter.convert(temp_path, self.source_se, tgt_se, output_path)
 
-        # Cleanup temp file
         os.remove(temp_path)
         return output_path
 
