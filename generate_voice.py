@@ -47,3 +47,4 @@ class VoiceGenerator:
 if __name__ == "__main__":
     vg = VoiceGenerator(device='cpu')
     out = vg.generate("Hello from OpenVoice!", "output.wav")
+    print(f"Generated: {out}")
