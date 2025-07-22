@@ -4,7 +4,7 @@ import torch
 import soundfile as sf
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-openvoice_dir = os.path.join(current_dir, 'my_openvoice')  # Adjust if your folder is named differently
+openvoice_dir = os.path.join(current_dir, 'openvoice')  # Adjust if your folder is named differently
 
 if openvoice_dir not in sys.path:
     sys.path.insert(0, openvoice_dir)  # Insert at front to prioritize local openvoice
