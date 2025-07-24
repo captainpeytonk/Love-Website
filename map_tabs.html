@@ -79,71 +79,49 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-  <script>
-    let map, geoLayer;
+<script>
+let map = L.map('map').setView([20, 0], 2);
+let geoLayer = null;
 
-    const regionPaths = {
-      world: 'countries/world.geojson',
-      us: 'countries/us-states.geojson',
-      uk: 'countries/top_lad.geojson',
-      nz: 'countries/nz.json',
-      jp: 'countries/japan.geojson'
-    };
+const regionPaths = {
+  world: 'countries/world.geojson',
+  us: 'countries/us-states.geojson',
+  uk: 'countries/top_lad.geojson',
+  nz: 'countries/nz.json',
+  jp: 'countries/japan.geojson'
+};
 
-    function initMap() {
-      map = L.map('map').setView([20, 0], 2);
+function loadMap(region) {
+  const url = regionPaths[region];
+  if (geoLayer) map.removeLayer(geoLayer);
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap contributors © CARTO',
-        subdomains: 'abcd',
-        maxZoom: 19
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      geoLayer = L.geoJSON(data, {
+        style: {
+          fillColor: '#8FB3D3',
+          color: '#5F84A2',
+          weight: 1,
+          fillOpacity: 0.7
+        },
+        onEachFeature: (feat, layer) => {
+          const name = feat.properties.name || feat.properties.NAME || 'Unknown';
+          layer.bindTooltip(name);
+          layer.on({
+            mouseover: e => e.target.setStyle({ fillColor: '#FFD700', fillOpacity: 0.8, weight: 2, color: '#B8860B' }),
+            mouseout: e => geoLayer.resetStyle(e.target),
+            click: e => e.target.setStyle({ fillColor: '#d4af37', fillOpacity: 0.5, color: '#5F84A2' })
+          });
+        }
       }).addTo(map);
+      map.fitBounds(geoLayer.getBounds());
+    })
+    .catch(e => console.error('Load error for ' + region, e));
+}
 
-      loadMap('world'); // Load initial map
-    }
-
-    function loadMap(region) {
-      const url = regionPaths[region];
-      if (!url) return console.error('Invalid region key:', region);
-      if (geoLayer) map.removeLayer(geoLayer);
-
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          geoLayer = L.geoJSON(data, {
-            style: {
-              fillColor: '#8FB3D3',
-              color: '#5F84A2',
-              weight: 1,
-              fillOpacity: 0.7
-            },
-            onEachFeature: (feat, layer) => {
-              const props = feat.properties || {};
-              const name = props.name || props.NAME || props.pref || props.region || "Unknown";
-              layer.bindTooltip(name);
-              layer.on({
-                mouseover: e => e.target.setStyle({
-                  fillColor: '#FFD700',
-                  fillOpacity: 0.8,
-                  weight: 2,
-                  color: '#B8860B'
-                }),
-                mouseout: e => geoLayer.resetStyle(e.target),
-                click: e => e.target.setStyle({
-                  fillColor: '#d4af37',
-                  fillOpacity: 0.5,
-                  color: '#5F84A2'
-                })
-              });
-            }
-          }).addTo(map);
-
-          map.fitBounds(geoLayer.getBounds());
-        })
-        .catch(err => console.error('Failed to load', url, err));
-    }
-
-    document.addEventListener('DOMContentLoaded', initMap);
-  </script>
+// Load initial map
+loadMap('world');
+</script>
 </body>
 </html>
