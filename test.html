@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enhanced Bucket List</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Georgia, serif;
+      background: linear-gradient(135deg, #87CEEB, #4682B4);
+      overflow-x: hidden;
+    }
+
+    .list-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 100px;
+    }
+
+    .upside-down-bucket {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) rotate(180deg);
+      font-size: 80px;
+      z-index: 10;
+      transition: opacity 0.3s ease;
+    }
+
+    .parchment-scroll {
+      width: 90%;
+      max-width: 800px;
+      height: 80vh;
+      overflow-y: auto;
+      background: #fdf6e3;
+      border: 2px solid #8b4513;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: inset 0 0 10px #8b4513;
+    }
+
+    .add-item-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .add-item-input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #8b4513;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .add-btn {
+      padding: 10px 15px;
+      background: #8b4513;
+      color: #fff5dc;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .bucket-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .bucket-item {
+      background: #fffaf0;
+      border: 2px solid #8b4513;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+
+    .bucket-item.completed {
+      background: #d6f5d6;
+      text-decoration: line-through;
+    }
+
+    .bucket-item-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .item-text {
+      flex: 1;
+      font-size: 18px;
+    }
+
+    .bucket-item input[type="checkbox"] {
+      transform: scale(1.2);
+      accent-color: #8b4513;
+    }
+
+    .delete-btn {
+      margin-top: 10px;
+      background: #8b4513;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .meta-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .completed-date {
+      font-size: 0.9em;
+      color: #654321;
+    }
+
+    .completed-image {
+      margin-top: 10px;
+      max-width: 100%;
+      border-radius: 10px;
+      border: 1px solid #654321;
+    }
+
+    .stats {
+      margin-top: 20px;
+      font-style: italic;
+      color: #333;
+    }
+
+    @media (max-width: 600px) {
+      .add-item-form {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="upside-down-bucket" id="topBucket">🪣</div>
+
+  <div class="list-view">
+    <div class="parchment-scroll" id="scrollContainer">
+      <form class="add-item-form" id="addItemForm">
+        <input type="text" class="add-item-input" id="itemInput" placeholder="Add a quest..." required />
+        <button type="submit" class="add-btn">Add</button>
+      </form>
+
+      <ul class="bucket-list" id="bucketList"></ul>
+
+      <div class="stats">
+        Total: <span id="totalItems">0</span> | Completed: <span id="completedItems">0</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let bucketItems = [];
+    let nextId = 1;
+
+    const addItemForm = document.getElementById("addItemForm");
+    const itemInput = document.getElementById("itemInput");
+    const bucketList = document.getElementById("bucketList");
+    const totalItemsSpan = document.getElementById("totalItems");
+    const completedItemsSpan = document.getElementById("completedItems");
+    const scrollContainer = document.getElementById("scrollContainer");
+    const topBucket = document.getElementById("topBucket");
+
+    scrollContainer.addEventListener("scroll", () => {
+      topBucket.style.opacity = scrollContainer.scrollTop > 30 ? "0" : "1";
+    });
+
+    addItemForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = itemInput.value.trim();
+      if (text) {
+        bucketItems.push({
+          id: nextId++,
+          text,
+          completed: false,
+          date: "",
+          image: ""
+        });
+        itemInput.value = "";
+        renderList();
+      }
+    });
+
+    function toggleItem(id) {
+      const item = bucketItems.find((i) => i.id === id);
+      if (item) {
+        item.completed = !item.completed;
+        renderList();
+      }
+    }
+
+    function deleteItem(id) {
+      bucketItems = bucketItems.filter((i) => i.id !== id);
+      renderList();
+    }
+
+    function updateMeta(id, type, value) {
+      const item = bucketItems.find((i) => i.id === id);
+      if (item) {
+        item[type] = value;
+        renderList();
+      }
+    }
+
+    function renderList() {
+      bucketList.innerHTML = "";
+      bucketItems.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "bucket-item" + (item.completed ? " completed" : "");
+        li.innerHTML = `
+          <div class="bucket-item-content">
+            <input type="checkbox" ${item.completed ? "checked" : ""} onchange="toggleItem(${item.id})"/>
+            <span class="item-text">${item.text}</span>
+          </div>
+          ${item.completed ? `
+            <div class="meta-controls">
+              <label class="completed-date">Date: 
+                <input type="date" value="${item.date}" onchange="updateMeta(${item.id}, 'date', this.value)" />
+              </label>
+              <label>
+                <input type="file" accept="image/*" onchange="handleImageUpload(event, ${item.id})" />
+              </label>
+            </div>
+            ${item.image ? `<img src="${item.image}" class="completed-image" />` : ""}
+          ` : ""}
+          <button class="delete-btn" onclick="deleteItem(${item.id})">Remove</button>
+        `;
+        bucketList.appendChild(li);
+      });
+      totalItemsSpan.textContent = bucketItems.length;
+      completedItemsSpan.textContent = bucketItems.filter(i => i.completed).length;
+    }
+
+    function handleImageUpload(event, id) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          updateMeta(id, "image", e.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    window.toggleItem = toggleItem;
+    window.deleteItem = deleteItem;
+    window.updateMeta = updateMeta;
+    window.handleImageUpload = handleImageUpload;
+  </script>
+</body>
+</html>
