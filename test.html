@@ -86,20 +86,16 @@
       pointer-events: all;
     }
 
-    .upside-down-bucket {
+.upside-down-bucket {
   position: fixed;
   top: 10px;
   left: 50%;
   transform: translateX(-50%) rotate(180deg);
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%) rotate(180deg);
-      font-size: 80px;
-      filter: drop-shadow(0 -10px 20px rgba(0,0,0,0.3));
-      z-index: 10;
-      animation: bucketDrop 1s ease-out;
-    }
+  font-size: 80px;
+  filter: drop-shadow(0 -10px 20px rgba(0,0,0,0.3));
+  z-index: 999; /* Ensure it stays above everything */
+  animation: bucketDrop 1s ease-out;
+}
 
     @keyframes bucketDrop {
       0% { transform: translateX(-50%) rotate(0deg) translateY(-100px); opacity: 0; }
@@ -150,15 +146,18 @@
       padding: 0;
     }
 
-    .bucket-item {
-      background: rgba(255,255,255,0.6);
-      border: 2px solid #8b4513;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-    }
+.bucket-item {
+  background: rgba(255,255,255,0.6);
+  border: 2px solid #8b4513;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
 
     .bucket-item.completed {
       background: rgba(144,238,144,0.6);
@@ -174,6 +173,23 @@
       margin-top: 10px;
       border-radius: 8px;
     }
+
+.quest-title {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #4b2e14;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.completion-msg {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #2f4f4f;
+  line-height: 1.4em;
+  white-space: pre-line;
+}
+    
   </style>
 </head>
 <body>
@@ -268,39 +284,43 @@ function renderList() {
   bucketItems.forEach(item => {
     const li = document.createElement('li');
     li.className = 'bucket-item';
-    li.style.display = 'flex';
-    li.style.flexDirection = 'row';
-    li.style.justifyContent = 'space-between';
-    li.style.alignItems = 'center';
 
     const left = document.createElement('div');
     left.style.width = '50%';
-    left.style.paddingRight = '10px';
 
     const right = document.createElement('div');
     right.style.width = '50%';
 
+    // Quest title on top-left
+    const title = document.createElement('div');
+    title.className = 'quest-title';
+    title.textContent = item.text;
+    left.appendChild(title);
+
+    // Toggle checkbox (hidden)
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = item.completed;
     checkbox.onchange = () => toggleItem(item.id);
-
-    const label = document.createElement('label');
-    label.appendChild(checkbox);
-    label.appendChild(document.createTextNode(' ✅ ' + item.text));
-    left.appendChild(label);
+    checkbox.style.marginTop = '10px';
+    left.appendChild(checkbox);
 
     if (item.completed) {
+      // Set date if not already set
       if (!item.date) {
         const today = new Date().toISOString().split('T')[0];
         item.date = today;
       }
 
       const randomGif = gifOptions[Math.floor(Math.random() * gifOptions.length)];
-      const msg = document.createElement('p');
-      msg.innerHTML = `🎉 <img src="${randomGif}" alt="gif" style="height:40px; vertical-align:middle;"> You completed <em>${item.text}</em> on <strong>${item.date}</strong>.`;
-      msg.style.fontWeight = 'bold';
-      msg.style.color = '#2f4f4f';
+      const msg = document.createElement('div');
+      msg.className = 'completion-msg';
+
+      msg.innerHTML = `
+        <img src="${randomGif}" alt="gif" style="height:80px;"><br>
+        you completed <em>${item.text}</em><br>
+        on <strong>${item.date}</strong>.
+      `;
       left.appendChild(msg);
 
       const dateInput = document.createElement('input');
