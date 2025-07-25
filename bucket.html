@@ -115,6 +115,7 @@
 
         .parchment-scroll {
             position: absolute;
+            overflow-y: auto;
             top: 140px;
             left: 50%;
             transform: translateX(-50%);
@@ -373,6 +374,22 @@
             .item-text {
                 font-size: 18px;
             }
+            }
+
+.completion-info {
+    font-size: 0.9em;
+    margin-left: 10px;
+    color: #4d3c2a;
+    font-style: italic;
+}
+
+.completed-image {
+    max-height: 80px;
+    margin-left: 15px;
+    border-radius: 8px;
+    border: 1px solid #654321;
+}
+
         }
     </style>
 </head>
@@ -414,101 +431,127 @@
         </div>
     </div>
 
-    <script>
-        let bucketItems = [];
-        let nextId = 1;
+<script>
+    let bucketItems = [];
+    let nextId = 1;
 
-        // DOM elements
-        const initialView = document.getElementById('initialView');
-        const listView = document.getElementById('listView');
-        const bucketContainer = document.getElementById('bucketContainer');
-        const addItemForm = document.getElementById('addItemForm');
-        const itemInput = document.getElementById('itemInput');
-        const bucketList = document.getElementById('bucketList');
-        const totalItemsSpan = document.getElementById('totalItems');
-        const completedItemsSpan = document.getElementById('completedItems');
+    const initialView = document.getElementById('initialView');
+    const listView = document.getElementById('listView');
+    const bucketContainer = document.getElementById('bucketContainer');
+    const addItemForm = document.getElementById('addItemForm');
+    const itemInput = document.getElementById('itemInput');
+    const bucketList = document.getElementById('bucketList');
+    const totalItemsSpan = document.getElementById('totalItems');
+    const completedItemsSpan = document.getElementById('completedItems');
+    const bucketTopIcon = document.querySelector('.upside-down-bucket');
 
-        // Bucket click animation
-        bucketContainer.addEventListener('click', function() {
-            // Add dramatic animation classes
-            initialView.style.transform = 'translateY(-100vh) rotate(-10deg)';
-            initialView.style.opacity = '0';
-            
-            setTimeout(() => {
-                initialView.style.display = 'none';
-                listView.classList.add('active');
-                setTimeout(() => {
-                    itemInput.focus();
-                }, 2000); // Wait for animations to complete
-            }, 800);
-        });
+    bucketContainer.addEventListener('click', () => {
+        initialView.style.transform = 'translateY(-100vh) rotate(-10deg)';
+        initialView.style.opacity = '0';
+        setTimeout(() => {
+            initialView.style.display = 'none';
+            listView.classList.add('active');
+            setTimeout(() => itemInput.focus(), 2000);
+        }, 800);
+    });
 
-        // Add new item
-        addItemForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const text = itemInput.value.trim();
-            if (text) {
-                addItem(text);
-                itemInput.value = '';
+    addItemForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const text = itemInput.value.trim();
+        if (text) {
+            addItem(text);
+            itemInput.value = '';
+        }
+    });
+
+    function addItem(text) {
+        const item = {
+            id: nextId++,
+            text,
+            completed: false,
+            date: null,
+            image: null
+        };
+        bucketItems.push(item);
+        renderList();
+        updateStats();
+    }
+
+    function toggleItem(id) {
+        const item = bucketItems.find(item => item.id === id);
+        if (item) {
+            item.completed = !item.completed;
+
+            if (item.completed) {
+                item.date = prompt("When did you complete this quest? (e.g. July 25, 2025)");
+                const imageUrl = prompt("Have a picture to commemorate it? Paste the image URL (optional):");
+                if (imageUrl) item.image = imageUrl;
+            } else {
+                item.date = null;
+                item.image = null;
             }
-        });
 
-        function addItem(text) {
-            const item = {
-                id: nextId++,
-                text: text,
-                completed: false
-            };
-            bucketItems.push(item);
             renderList();
             updateStats();
         }
+    }
 
-        function toggleItem(id) {
-            const item = bucketItems.find(item => item.id === id);
-            if (item) {
-                item.completed = !item.completed;
-                renderList();
-                updateStats();
+    function deleteItem(id) {
+        bucketItems = bucketItems.filter(item => item.id !== id);
+        renderList();
+        updateStats();
+    }
+
+    function renderList() {
+        bucketList.innerHTML = '';
+        bucketItems.forEach(item => {
+            const li = document.createElement('li');
+            li.className = `bucket-item ${item.completed ? 'completed' : ''}`;
+
+            let html = `
+                <input 
+                    type="checkbox" 
+                    ${item.completed ? 'checked' : ''} 
+                    onchange="toggleItem(${item.id})"
+                >
+                <span class="item-text">${item.text}</span>
+            `;
+
+            if (item.completed) {
+                html += `<span class="completion-info">✅ Completed: ${item.date || 'Unknown date'}</span>`;
+                if (item.image) {
+                    html += `<img src="${item.image}" alt="Completed image" class="completed-image">`;
+                }
             }
-        }
 
-        function deleteItem(id) {
-            bucketItems = bucketItems.filter(item => item.id !== id);
-            renderList();
-            updateStats();
-        }
+            html += `<button class="delete-btn" onclick="deleteItem(${item.id})">Remove</button>`;
+            li.innerHTML = html;
+            bucketList.appendChild(li);
+        });
+    }
 
-        function renderList() {
-            bucketList.innerHTML = '';
-            bucketItems.forEach(item => {
-                const li = document.createElement('li');
-                li.className = `bucket-item ${item.completed ? 'completed' : ''}`;
-                
-                li.innerHTML = `
-                    <input 
-                        type="checkbox" 
-                        ${item.completed ? 'checked' : ''} 
-                        onchange="toggleItem(${item.id})"
-                    >
-                    <span class="item-text">${item.text}</span>
-                    <button class="delete-btn" onclick="deleteItem(${item.id})">Remove</button>
-                `;
-                
-                bucketList.appendChild(li);
-            });
-        }
+    function updateStats() {
+        const total = bucketItems.length;
+        const completed = bucketItems.filter(item => item.completed).length;
+        totalItemsSpan.textContent = total;
+        completedItemsSpan.textContent = completed;
+    }
 
-        function updateStats() {
-            const total = bucketItems.length;
-            const completed = bucketItems.filter(item => item.completed).length;
-            totalItemsSpan.textContent = total;
-            completedItemsSpan.textContent = completed;
-        }
+    // Expose to global for inline HTML
+    window.toggleItem = toggleItem;
+    window.deleteItem = deleteItem;
 
-        // Make functions global so they can be called from onclick handlers
-        window.toggleItem = toggleItem;
-        window.deleteItem = deleteItem;
-    </script>
+    // Hide the top bucket when scrolling down
+    document.querySelector('.parchment-scroll').addEventListener('scroll', function() {
+        const topBucket = document.querySelector('.upside-down-bucket');
+        if (this.scrollTop > 30) {
+            topBucket.style.opacity = '0';
+            topBucket.style.pointerEvents = 'none';
+        } else {
+            topBucket.style.opacity = '1';
+            topBucket.style.pointerEvents = 'auto';
+        }
+    });
+</script>
 </body>
 </html>
