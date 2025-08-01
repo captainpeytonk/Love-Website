@@ -141,6 +141,35 @@
       background-color: #ffe0ef;
       color: #d63384;
     }
+    .scroll-gallery {
+  position: fixed;
+  width: 100px;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  top: 0;
+}
+
+.scroll-gallery.left {
+  left: 0;
+}
+
+.scroll-gallery.right {
+  right: 0;
+}
+
+.scroll-gallery img {
+  width: 100px;
+  height: auto;
+  display: block;
+  margin-bottom: 10px;
+  animation: scrollUp 20s linear infinite;
+}
+
+@keyframes scrollUp {
+  0% { transform: translateY(100%); }
+  100% { transform: translateY(-100%); }
+}
     .timeline-container {
       display: flex;
       justify-content: center;
@@ -161,6 +190,8 @@
     }
   </style>
 </head>
+  <div id="leftGallery" class="scroll-gallery left"></div>
+<div id="rightGallery" class="scroll-gallery right"></div>
 <body>
 
 <h1>💕 Our Love Timeline</h1>
@@ -349,6 +380,29 @@
   }
 
   setInterval(updateTimers, 1000);
+function loadScrollGalleries() {
+  const leftGallery = document.getElementById('leftGallery');
+  const rightGallery = document.getElementById('rightGallery');
+
+  const leftImages = JSON.parse(localStorage.getItem("loveGalleryBucket") || "[]");
+  const rightImages = JSON.parse(localStorage.getItem("loveGalleryMap") || "[]");
+
+  leftImages.forEach(url => {
+    const img = document.createElement('img');
+    img.src = url;
+    leftGallery.appendChild(img);
+  });
+
+  rightImages.forEach(url => {
+    const img = document.createElement('img');
+    img.src = url;
+    rightGallery.appendChild(img);
+  });
+}
+
+window.addEventListener("load", loadScrollGalleries);
+
+  
 </script>
 
 </body>
