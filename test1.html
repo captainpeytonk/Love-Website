@@ -257,11 +257,17 @@
 
     function toggleItem(id) {
       const item = bucketItems.find(i => i.id === id);
-      if (item) {
-        item.completed = !item.completed;
-        renderList();
-      }
-    }
+      if (item.image) {
+    // Save image to loveGalleryBucket array in localStorage
+    const existing = JSON.parse(localStorage.getItem("loveGalleryBucket") || "[]");
+    existing.push(item.image);
+    localStorage.setItem("loveGalleryBucket", JSON.stringify(existing));
+}
+      ///if (item) {
+        ///item.completed = !item.completed;
+        ///renderList();
+      ///}
+    ///}
 
     function handleExtraFields(id, field, value) {
       const item = bucketItems.find(i => i.id === id);
