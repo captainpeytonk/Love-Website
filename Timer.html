@@ -1,164 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Love Timeline</title>
-<style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #fff0f5;
-    color: #333;
-    margin: 0;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  h1 {
-    color: #d63384;
-    margin-bottom: 2rem;
-  }
-  #addButton {
-    font-size: 4rem;
-    color: #d63384;
-    cursor: pointer;
-    user-select: none;
-    border: 3px dashed #d63384;
-    border-radius: 50%;
-    width: 80px;
-    height: 80px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 1rem;
-    transition: background 0.3s ease;
-  }
-  #addButton:hover {
-    background: #f8d7e4;
-  }
-  #eventForm {
-    background: #fff;
-    border: 2px solid #d63384;
-    border-radius: 1rem;
-    padding: 1rem 1.5rem;
-    max-width: 400px;
-    width: 100%;
-    margin-bottom: 2rem;
-    display: none;
-    flex-direction: column;
-  }
-  #eventForm input[type="text"],
-  #eventForm input[type="date"] {
-    font-size: 1rem;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #ccc;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  #eventForm button {
-    background: #d63384;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    padding: 0.7rem;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  #eventForm button:disabled {
-    background: #eaa6c0;
-    cursor: default;
-  }
-  #eventsList {
-    max-width: 400px;
-    width: 100%;
-  }
-  .event-card {
-    position: relative;
-    background: #fff;
-    border: 2px solid #d63384;
-    border-radius: 1rem;
-    padding: 1rem 1.5rem 1.5rem 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-  }
-  .event-info {
-    margin-bottom: 0.5rem;
-  }
-  .event-name {
-    font-weight: bold;
-    color: #d63384;
-    margin-bottom: 0.3rem;
-    font-size: 1.2rem;
-  }
-  .event-date {
-    font-size: 1rem;
-    color: #666;
-  }
-  .event-timer {
-    font-size: 1rem;
-    margin-top: 0.7rem;
-    color: #555;
-  }
-  .delete-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: transparent;
-    border: none;
-    color: #d63384;
-    font-size: 1.2rem;
-    cursor: pointer;
-    user-select: none;
-    line-height: 1;
-    padding: 0;
-  }
-  .delete-btn:hover {
-    color: #a02862;
-  }
-.event-month-group {
-  margin-bottom: 2rem;
-}
-
-.event-month-header {
-  font-weight: bold;
-  color: #d63384;
-  margin-bottom: 0.5rem;
-  font-size: 1.1rem;
-}
-
-.sidebar-link {
-  cursor: pointer;
-  color: #555;
-  margin: 0.2rem 0;
-  padding: 2px 6px;
-  border-radius: 4px;
-  display: block;
-  font-size: 0.9rem;
-}
-
-.sidebar-link:hover {
-  background-color: #ffe0ef;
-  color: #d63384;
-}
-  
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Love Timeline</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fff0f5;
+      color: #333;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      color: #d63384;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    #addButton {
+      font-size: 4rem;
+      color: #d63384;
+      cursor: pointer;
+      user-select: none;
+      border: 3px dashed #d63384;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1rem;
+      transition: background 0.3s ease;
+    }
+    #addButton:hover {
+      background: #f8d7e4;
+    }
+    #eventForm {
+      background: #fff;
+      border: 2px solid #d63384;
+      border-radius: 1rem;
+      padding: 1rem 1.5rem;
+      max-width: 400px;
+      width: 100%;
+      margin-bottom: 2rem;
+      display: none;
+      flex-direction: column;
+    }
+    #eventForm input[type="text"],
+    #eventForm input[type="date"] {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #eventForm button {
+      background: #d63384;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.7rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #eventForm button:disabled {
+      background: #eaa6c0;
+      cursor: default;
+    }
+    .event-month-group {
+      margin-bottom: 2rem;
+    }
+    .event-month-header {
+      font-weight: bold;
+      color: #d63384;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+    .event-card {
+      position: relative;
+      background: #fff;
+      border: 2px solid #d63384;
+      border-radius: 1rem;
+      padding: 1rem 1.5rem 1.5rem 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+    }
+    .event-info {
+      margin-bottom: 0.5rem;
+    }
+    .event-name {
+      font-weight: bold;
+      color: #d63384;
+      margin-bottom: 0.3rem;
+      font-size: 1.2rem;
+    }
+    .event-date {
+      font-size: 1rem;
+      color: #666;
+    }
+    .event-timer {
+      font-size: 1rem;
+      margin-top: 0.7rem;
+      color: #555;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      color: #d63384;
+      font-size: 1.2rem;
+      cursor: pointer;
+      user-select: none;
+      line-height: 1;
+      padding: 0;
+    }
+    .delete-btn:hover {
+      color: #a02862;
+    }
+    .sidebar-link {
+      cursor: pointer;
+      color: #555;
+      margin: 0.2rem 0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: block;
+      font-size: 0.9rem;
+      text-align: right;
+    }
+    .sidebar-link:hover {
+      background-color: #ffe0ef;
+      color: #d63384;
+    }
+    .timeline-container {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      max-width: 900px;
+      gap: 2rem;
+    }
+    #eventsList {
+      flex: 3;
+      padding-right: 1rem;
+    }
+    #sidebar {
+      flex: 1;
+      max-width: 150px;
+      position: sticky;
+      top: 1rem;
+      align-self: flex-start;
+    }
+  </style>
 </head>
 <body>
 
 <h1>💕 Our Love Timeline</h1>
-
-<div style="margin-bottom: 1rem;">
-  <label for="sortToggle">Sort: </label>
-  <select id="sortToggle">
-    <option value="asc">Oldest to Newest</option>
-    <option value="desc">Newest to Oldest</option>
-  </select>
-</div>
 
 <div id="addButton" title="Add a new event">＋</div>
 
@@ -168,9 +173,9 @@
   <button type="submit" disabled>Add Event</button>
 </form>
 
-<div style="display: flex; width: 100%; max-width: 900px;">
-  <div id="eventsList" style="flex: 3; padding-right: 1rem;"></div>
-  <div id="sidebar" style="flex: 1; max-width: 150px; position: sticky; top: 1rem; align-self: flex-start;"></div>
+<div class="timeline-container">
+  <div id="eventsList"></div>
+  <div id="sidebar"></div>
 </div>
 
 <script>
@@ -183,21 +188,12 @@
 
   let events = [];
 
-let sortOrder = 'asc'; // 'asc' = oldest to newest, 'desc' = newest to oldest
-
-document.getElementById('sortToggle').addEventListener('change', (e) => {
-  sortOrder = e.target.value;
-  renderEvents();
-});
-  
-  // Show form when + button clicked
   addButton.addEventListener('click', () => {
     addButton.style.display = 'none';
     eventForm.style.display = 'flex';
     eventNameInput.focus();
   });
 
-  // Enable submit if both fields have value
   function checkInputs() {
     submitBtn.disabled = !(eventNameInput.value.trim() && eventDateInput.value);
   }
@@ -205,7 +201,6 @@ document.getElementById('sortToggle').addEventListener('change', (e) => {
   eventNameInput.addEventListener('input', checkInputs);
   eventDateInput.addEventListener('input', checkInputs);
 
-  // Format date as DD/MM/YYYY for display
   function formatDateDMY(dateStr) {
     const d = new Date(dateStr + "T00:00:00");
     const day = String(d.getDate()).padStart(2, '0');
@@ -214,13 +209,11 @@ document.getElementById('sortToggle').addEventListener('change', (e) => {
     return `${day}/${month}/${year}`;
   }
 
-  // Add event on form submit
   eventForm.addEventListener('submit', e => {
     e.preventDefault();
     const name = eventNameInput.value.trim();
     const date = eventDateInput.value;
-
-    if (!name || !date) return; // safety check
+    if (!name || !date) return;
 
     events.push({ name, date });
     eventNameInput.value = '';
@@ -232,113 +225,106 @@ document.getElementById('sortToggle').addEventListener('change', (e) => {
     renderEvents();
   });
 
-  // Delete event by index
   function deleteEvent(index) {
     events.splice(index, 1);
     renderEvents();
   }
 
-  // Render all events
-function renderEvents() {
-  eventsList.innerHTML = '';
-  document.getElementById('sidebar').innerHTML = '';
-  if (events.length === 0) return;
+  function renderEvents() {
+    eventsList.innerHTML = '';
+    document.getElementById('sidebar').innerHTML = '';
+    if (events.length === 0) return;
 
-  const sortedEvents = [...events].sort((a, b) => {
-    return sortOrder === 'asc'
-      ? new Date(a.date) - new Date(b.date)
-      : new Date(b.date) - new Date(a.date);
-  });
+    const sortedEvents = [...events].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-  const grouped = {};
+    const grouped = {};
 
-  // Group events by YYYY-MM
-  sortedEvents.forEach(event => {
-    const date = new Date(event.date);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(event);
-  });
-
-  // Create sidebar index
-  const sidebar = document.getElementById('sidebar');
-  const sidebarList = document.createElement('div');
-
-  Object.keys(grouped).sort().forEach(key => {
-    const [year, month] = key.split('-');
-    const monthName = new Date(`${year}-${month}-01`).toLocaleString('default', { month: 'short' });
-
-    const link = document.createElement('div');
-    link.className = 'sidebar-link';
-    link.textContent = `${monthName} ${year}`;
-    link.addEventListener('click', () => {
-      document.getElementById(`month-${key}`).scrollIntoView({ behavior: 'smooth' });
+    sortedEvents.forEach(event => {
+      const date = new Date(event.date);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(event);
     });
 
-    sidebarList.appendChild(link);
-  });
+    const sidebar = document.getElementById('sidebar');
+    const sidebarList = document.createElement('div');
 
-  sidebar.appendChild(sidebarList);
+    Object.keys(grouped).forEach(key => {
+      const [year, month] = key.split('-');
+      const monthName = new Date(`${year}-${month}-01`).toLocaleString('default', { month: 'short' });
 
-  // Render grouped events
-  Object.keys(grouped).sort().forEach((key) => {
-    const [year, month] = key.split('-');
-    const groupDiv = document.createElement('div');
-    groupDiv.className = 'event-month-group';
-    groupDiv.id = `month-${key}`;
-
-    const header = document.createElement('div');
-    header.className = 'event-month-header';
-    const monthName = new Date(`${year}-${month}-01`).toLocaleString('default', { month: 'long' });
-    header.textContent = `${monthName} ${year}`;
-
-    groupDiv.appendChild(header);
-
-    grouped[key].forEach((event, i) => {
-      const card = document.createElement('div');
-      card.className = 'event-card';
-
-      const info = document.createElement('div');
-      info.className = 'event-info';
-
-      const name = document.createElement('div');
-      name.className = 'event-name';
-      name.textContent = event.name;
-
-      const date = document.createElement('div');
-      date.className = 'event-date';
-      date.textContent = formatDateDMY(event.date);
-
-      const timer = document.createElement('div');
-      timer.className = 'event-timer';
-      timer.id = `timer-${i}`;
-
-      info.appendChild(name);
-      info.appendChild(date);
-      info.appendChild(timer);
-
-      const delBtn = document.createElement('button');
-      delBtn.className = 'delete-btn';
-      delBtn.innerHTML = '🗑️';
-      delBtn.title = 'Delete event';
-      delBtn.addEventListener('click', () => {
-        const indexToDelete = events.findIndex(e => e.name === event.name && e.date === event.date);
-        if (indexToDelete !== -1) deleteEvent(indexToDelete);
+      const link = document.createElement('div');
+      link.className = 'sidebar-link';
+      link.textContent = `${monthName} ${year}`;
+      link.addEventListener('click', () => {
+        document.getElementById(`month-${key}`).scrollIntoView({ behavior: 'smooth' });
       });
 
-      card.appendChild(info);
-      card.appendChild(delBtn);
-      groupDiv.appendChild(card);
+      sidebarList.appendChild(link);
     });
 
-    eventsList.appendChild(groupDiv);
-  });
-}
-  // Update timers every second
+    sidebar.appendChild(sidebarList);
+
+    Object.keys(grouped).forEach((key) => {
+      const [year, month] = key.split('-');
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'event-month-group';
+      groupDiv.id = `month-${key}`;
+
+      const header = document.createElement('div');
+      header.className = 'event-month-header';
+      const monthName = new Date(`${year}-${month}-01`).toLocaleString('default', { month: 'long' });
+      header.textContent = `${monthName} ${year}`;
+
+      groupDiv.appendChild(header);
+
+      grouped[key].forEach((event, i) => {
+        const card = document.createElement('div');
+        card.className = 'event-card';
+
+        const info = document.createElement('div');
+        info.className = 'event-info';
+
+        const name = document.createElement('div');
+        name.className = 'event-name';
+        name.textContent = event.name;
+
+        const date = document.createElement('div');
+        date.className = 'event-date';
+        date.textContent = formatDateDMY(event.date);
+
+        const timer = document.createElement('div');
+        timer.className = 'event-timer';
+        timer.id = `timer-${event.name}-${event.date}`;
+
+        info.appendChild(name);
+        info.appendChild(date);
+        info.appendChild(timer);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-btn';
+        delBtn.innerHTML = '🗑️';
+        delBtn.title = 'Delete event';
+        delBtn.addEventListener('click', () => {
+          const indexToDelete = events.findIndex(e => e.name === event.name && e.date === event.date);
+          if (indexToDelete !== -1) deleteEvent(indexToDelete);
+        });
+
+        card.appendChild(info);
+        card.appendChild(delBtn);
+        groupDiv.appendChild(card);
+      });
+
+      eventsList.appendChild(groupDiv);
+    });
+
+    updateTimers();
+  }
+
   function updateTimers() {
     const now = new Date();
 
-    events.forEach((event, i) => {
+    events.forEach(event => {
       const eventDate = new Date(event.date + "T00:00:00");
       let diff = now - eventDate;
       if (diff < 0) diff = 0;
@@ -357,7 +343,7 @@ function renderEvents() {
 
       const text = `⏳ ${years} Years ${months} Months ${days} Days ${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
 
-      const timerEl = document.getElementById(`timer-${i}`);
+      const timerEl = document.getElementById(`timer-${event.name}-${event.date}`);
       if (timerEl) timerEl.textContent = text;
     });
   }
