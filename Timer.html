@@ -120,6 +120,32 @@
   .delete-btn:hover {
     color: #a02862;
   }
+.event-month-group {
+  margin-bottom: 2rem;
+}
+
+.event-month-header {
+  font-weight: bold;
+  color: #d63384;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.sidebar-link {
+  cursor: pointer;
+  color: #555;
+  margin: 0.2rem 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: block;
+  font-size: 0.9rem;
+}
+
+.sidebar-link:hover {
+  background-color: #ffe0ef;
+  color: #d63384;
+}
+  
 </style>
 </head>
 <body>
@@ -142,7 +168,10 @@
   <button type="submit" disabled>Add Event</button>
 </form>
 
-<div id="eventsList"></div>
+<div style="display: flex; width: 100%; max-width: 900px;">
+  <div id="eventsList" style="flex: 3; padding-right: 1rem;"></div>
+  <div id="sidebar" style="flex: 1; max-width: 150px; position: sticky; top: 1rem; align-self: flex-start;"></div>
+</div>
 
 <script>
   const addButton = document.getElementById('addButton');
@@ -212,6 +241,7 @@ document.getElementById('sortToggle').addEventListener('change', (e) => {
   // Render all events
 function renderEvents() {
   eventsList.innerHTML = '';
+  document.getElementById('sidebar').innerHTML = '';
   if (events.length === 0) return;
 
   const sortedEvents = [...events].sort((a, b) => {
@@ -220,45 +250,90 @@ function renderEvents() {
       : new Date(b.date) - new Date(a.date);
   });
 
-  sortedEvents.forEach((event, i) => {
-    const card = document.createElement('div');
-    card.className = 'event-card';
+  const grouped = {};
 
-    const info = document.createElement('div');
-    info.className = 'event-info';
+  // Group events by YYYY-MM
+  sortedEvents.forEach(event => {
+    const date = new Date(event.date);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(event);
+  });
 
-    const name = document.createElement('div');
-    name.className = 'event-name';
-    name.textContent = event.name;
+  // Create sidebar index
+  const sidebar = document.getElementById('sidebar');
+  const sidebarList = document.createElement('div');
 
-    const date = document.createElement('div');
-    date.className = 'event-date';
-    date.textContent = formatDateDMY(event.date);
+  Object.keys(grouped).sort().forEach(key => {
+    const [year, month] = key.split('-');
+    const monthName = new Date(`${year}-${month}-01`).toLocaleString('default', { month: 'short' });
 
-    const timer = document.createElement('div');
-    timer.className = 'event-timer';
-    timer.id = `timer-${i}`;
-
-    info.appendChild(name);
-    info.appendChild(date);
-    info.appendChild(timer);
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'delete-btn';
-    delBtn.innerHTML = '🗑️';
-    delBtn.title = 'Delete event';
-    delBtn.addEventListener('click', () => {
-      const indexToDelete = events.findIndex(e => e.name === event.name && e.date === event.date);
-      if (indexToDelete !== -1) deleteEvent(indexToDelete);
+    const link = document.createElement('div');
+    link.className = 'sidebar-link';
+    link.textContent = `${monthName} ${year}`;
+    link.addEventListener('click', () => {
+      document.getElementById(`month-${key}`).scrollIntoView({ behavior: 'smooth' });
     });
 
-    card.appendChild(info);
-    card.appendChild(delBtn);
+    sidebarList.appendChild(link);
+  });
 
-    eventsList.appendChild(card);
+  sidebar.appendChild(sidebarList);
+
+  // Render grouped events
+  Object.keys(grouped).sort().forEach((key) => {
+    const [year, month] = key.split('-');
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'event-month-group';
+    groupDiv.id = `month-${key}`;
+
+    const header = document.createElement('div');
+    header.className = 'event-month-header';
+    const monthName = new Date(`${year}-${month}-01`).toLocaleString('default', { month: 'long' });
+    header.textContent = `${monthName} ${year}`;
+
+    groupDiv.appendChild(header);
+
+    grouped[key].forEach((event, i) => {
+      const card = document.createElement('div');
+      card.className = 'event-card';
+
+      const info = document.createElement('div');
+      info.className = 'event-info';
+
+      const name = document.createElement('div');
+      name.className = 'event-name';
+      name.textContent = event.name;
+
+      const date = document.createElement('div');
+      date.className = 'event-date';
+      date.textContent = formatDateDMY(event.date);
+
+      const timer = document.createElement('div');
+      timer.className = 'event-timer';
+      timer.id = `timer-${i}`;
+
+      info.appendChild(name);
+      info.appendChild(date);
+      info.appendChild(timer);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-btn';
+      delBtn.innerHTML = '🗑️';
+      delBtn.title = 'Delete event';
+      delBtn.addEventListener('click', () => {
+        const indexToDelete = events.findIndex(e => e.name === event.name && e.date === event.date);
+        if (indexToDelete !== -1) deleteEvent(indexToDelete);
+      });
+
+      card.appendChild(info);
+      card.appendChild(delBtn);
+      groupDiv.appendChild(card);
+    });
+
+    eventsList.appendChild(groupDiv);
   });
 }
-
   // Update timers every second
   function updateTimers() {
     const now = new Date();
