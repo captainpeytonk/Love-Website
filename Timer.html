@@ -126,6 +126,14 @@
 
 <h1>💕 Our Love Timeline</h1>
 
+<div style="margin-bottom: 1rem;">
+  <label for="sortToggle">Sort: </label>
+  <select id="sortToggle">
+    <option value="asc">Oldest to Newest</option>
+    <option value="desc">Newest to Oldest</option>
+  </select>
+</div>
+
 <div id="addButton" title="Add a new event">＋</div>
 
 <form id="eventForm" aria-label="Add a new event">
@@ -146,6 +154,13 @@
 
   let events = [];
 
+let sortOrder = 'asc'; // 'asc' = oldest to newest, 'desc' = newest to oldest
+
+document.getElementById('sortToggle').addEventListener('change', (e) => {
+  sortOrder = e.target.value;
+  renderEvents();
+});
+  
   // Show form when + button clicked
   addButton.addEventListener('click', () => {
     addButton.style.display = 'none';
@@ -195,45 +210,54 @@
   }
 
   // Render all events
-  function renderEvents() {
-    eventsList.innerHTML = '';
-    if (events.length === 0) return;
+function renderEvents() {
+  eventsList.innerHTML = '';
+  if (events.length === 0) return;
 
-    events.forEach((event, i) => {
-      const card = document.createElement('div');
-      card.className = 'event-card';
+  const sortedEvents = [...events].sort((a, b) => {
+    return sortOrder === 'asc'
+      ? new Date(a.date) - new Date(b.date)
+      : new Date(b.date) - new Date(a.date);
+  });
 
-      const info = document.createElement('div');
-      info.className = 'event-info';
+  sortedEvents.forEach((event, i) => {
+    const card = document.createElement('div');
+    card.className = 'event-card';
 
-      const name = document.createElement('div');
-      name.className = 'event-name';
-      name.textContent = event.name;
+    const info = document.createElement('div');
+    info.className = 'event-info';
 
-      const date = document.createElement('div');
-      date.className = 'event-date';
-      date.textContent = formatDateDMY(event.date);
+    const name = document.createElement('div');
+    name.className = 'event-name';
+    name.textContent = event.name;
 
-      const timer = document.createElement('div');
-      timer.className = 'event-timer';
-      timer.id = `timer-${i}`;
+    const date = document.createElement('div');
+    date.className = 'event-date';
+    date.textContent = formatDateDMY(event.date);
 
-      info.appendChild(name);
-      info.appendChild(date);
-      info.appendChild(timer);
+    const timer = document.createElement('div');
+    timer.className = 'event-timer';
+    timer.id = `timer-${i}`;
 
-      const delBtn = document.createElement('button');
-      delBtn.className = 'delete-btn';
-      delBtn.innerHTML = '🗑️';
-      delBtn.title = 'Delete event';
-      delBtn.addEventListener('click', () => deleteEvent(i));
+    info.appendChild(name);
+    info.appendChild(date);
+    info.appendChild(timer);
 
-      card.appendChild(info);
-      card.appendChild(delBtn);
-
-      eventsList.appendChild(card);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.innerHTML = '🗑️';
+    delBtn.title = 'Delete event';
+    delBtn.addEventListener('click', () => {
+      const indexToDelete = events.findIndex(e => e.name === event.name && e.date === event.date);
+      if (indexToDelete !== -1) deleteEvent(indexToDelete);
     });
-  }
+
+    card.appendChild(info);
+    card.appendChild(delBtn);
+
+    eventsList.appendChild(card);
+  });
+}
 
   // Update timers every second
   function updateTimers() {
