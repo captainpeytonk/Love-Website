@@ -255,13 +255,32 @@
       renderList();
     }
 
-    function toggleItem(id) {
-      const item = bucketItems.find(i => i.id === id);
-      if (item) {
-        item.completed = !item.completed;
-        renderList();
-      }
+function toggleItem(id) {
+  const item = bucketItems.find(i => i.id === id);
+  if (!item) return;
+
+  item.completed = !item.completed;
+
+  if (item.completed) {
+    item.date = prompt("When did you complete this quest? (e.g. July 25, 2025)");
+    const imageUrl = prompt("Paste an image URL to remember this moment (optional):");
+    if (imageUrl) {
+      item.image = imageUrl;
+
+      // Save to localStorage for use in Love Timer
+      const stored = JSON.parse(localStorage.getItem("loveGalleryBucket") || "[]");
+      stored.push(imageUrl);
+      localStorage.setItem("loveGalleryBucket", JSON.stringify(stored));
     }
+  } else {
+    item.date = null;
+    item.image = null;
+  }
+
+  renderList();
+  updateStats();
+}
+
 
     function handleExtraFields(id, field, value) {
       const item = bucketItems.find(i => i.id === id);
