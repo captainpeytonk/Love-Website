@@ -5,131 +5,229 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Bucket List</title>
   <style>
-    body {
-      font-family: 'Georgia', serif;
-      background: linear-gradient(135deg, #87CEEB, #4682B4);
+    /* Existing styles retained */
+    * {
       margin: 0;
-      padding: 2rem;
+      padding: 0;
+      box-sizing: border-box;
     }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    .initial-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      transition: all 1.5s ease;
+    }
+
+    .initial-view.hidden {
+      transform: translateY(-100vh) rotate(-10deg) !important;
+      opacity: 0 !important;
+    }
+
+    .bucket-container {
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .bucket-container:hover {
+      transform: scale(1.05);
+    }
+
+    .bucket {
+      font-size: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
+      transition: all 0.5s ease;
+    }
+
+    .click-prompt {
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      animation: bounce 2s infinite;
+      white-space: nowrap;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+      40% { transform: translateX(-50%) translateY(-10px); }
+      60% { transform: translateX(-50%) translateY(-5px); }
+    }
+
+    .list-view {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s ease;
+    }
+
+    .list-view.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+.upside-down-bucket {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+  font-size: 80px;
+  filter: drop-shadow(0 -10px 20px rgba(0,0,0,0.3));
+  z-index: 999; /* Ensure it stays above everything */
+  animation: bucketDrop 1s ease-out;
+}
+
+    @keyframes bucketDrop {
+      0% { transform: translateX(-50%) rotate(0deg) translateY(-100px); opacity: 0; }
+      50% { transform: translateX(-50%) rotate(90deg) translateY(0px); opacity: 0.7; }
+      100% { transform: translateX(-50%) rotate(180deg) translateY(0px); opacity: 1; }
+    }
+
+    .parchment-scroll {
+      position: relative;
+      top: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 800px;
+      min-height: calc(100vh - 160px);
+      background: linear-gradient(180deg, #f9f1d4 0%, #f4e4bc 25%, #e8d5a3 75%, #dcc48a 100%);
+      border: none;
+      box-shadow: 0 0 50px rgba(139, 69, 19, 0.4), inset 0 0 20px rgba(139, 69, 19, 0.1);
+      padding: 60px 40px 40px 40px;
+    }
+
+    
+    .scroll-content { position: relative; z-index: 1; }
 
     h1 {
       text-align: center;
-      color: #fff;
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
+      color: #654321;
+      font-size: 3em;
+      margin-bottom: 40px;
     }
 
     .add-item-form {
       display: flex;
       gap: 10px;
-      justify-content: center;
-      margin-bottom: 2rem;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
     }
 
-    .add-item-input {
-      padding: 0.5rem;
-      font-size: 1rem;
-      width: 300px;
-      border-radius: 5px;
-      border: 1px solid #333;
-    }
-
-    .add-btn {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      background: #333;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+    .add-item-input, .add-btn {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 2px solid #8b4513;
     }
 
     .bucket-list {
       list-style: none;
       padding: 0;
-      max-width: 600px;
-      margin: 0 auto;
     }
 
-    .bucket-item {
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
+.bucket-item {
+  background: rgba(255,255,255,0.6);
+  border: 2px solid #8b4513;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
 
     .bucket-item.completed {
-      background: #d4edda;
+      background: rgba(144,238,144,0.6);
       text-decoration: line-through;
     }
 
-    .bucket-item input[type="checkbox"] {
-      margin-right: 10px;
-    }
-
-    .completion-info {
-      font-size: 0.85rem;
-      color: #555;
-      margin-top: 0.5rem;
-    }
-
-    .completed-image {
-      max-height: 100px;
+    .extra-fields {
       margin-top: 10px;
-      border-radius: 5px;
     }
 
-    .delete-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #e74c3c;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      cursor: pointer;
+    .extra-fields img {
+      max-width: 100px;
+      margin-top: 10px;
+      border-radius: 8px;
     }
 
-    .stats {
-      text-align: center;
-      color: white;
-      margin-top: 2rem;
-      font-size: 1rem;
-    }
+.quest-title {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #4b2e14;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.completion-msg {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #2f4f4f;
+  line-height: 1.4em;
+  white-space: pre-line;
+}
+    
   </style>
 </head>
 <body>
-
-  <h1>My Bucket List</h1>
-
-  <form class="add-item-form" id="addItemForm">
-    <input type="text" class="add-item-input" id="itemInput" placeholder="Add a new quest..." required>
-    <button type="submit" class="add-btn">Add</button>
-  </form>
-
-  <ul class="bucket-list" id="bucketList"></ul>
-
-  <div class="stats">
-    <div><strong>Total Quests:</strong> <span id="totalItems">0</span></div>
-    <div><strong>Completed:</strong> <span id="completedItems">0</span></div>
+  <div class="initial-view" id="initialView">
+    <div class="bucket-container" id="bucketContainer">
+      <div class="click-prompt">Click the bucket to unfurl your scroll!</div>
+      <div class="bucket">🪣</div>
+    </div>
   </div>
 
-<script>
-  let bucketItems = [];
-  let nextId = 1;
+  <div class="list-view" id="listView">
+    <div class="upside-down-bucket">🪣</div>
+    <div class="parchment-scroll">
+      <div class="scroll-content">
+        <h1>My Bucket List</h1>
+        <form class="add-item-form" id="addItemForm">
+          <input type="text" class="add-item-input" id="itemInput" placeholder="What quest shall you undertake?" required>
+          <button type="submit" class="add-btn">Add Quest</button>
+        </form>
+        <ul class="bucket-list" id="bucketList"></ul>
+      </div>
+    </div>
+  </div>
 
+  <script>
+    let bucketItems = [];
+    let nextId = 1;
+
+  const initialView = document.getElementById('initialView');
+  const listView = document.getElementById('listView');
+  const bucketContainer = document.getElementById('bucketContainer');
   const addItemForm = document.getElementById('addItemForm');
   const itemInput = document.getElementById('itemInput');
   const bucketList = document.getElementById('bucketList');
   const totalItemsSpan = document.getElementById('totalItems');
   const completedItemsSpan = document.getElementById('completedItems');
 
-  // Load saved data
+  // Restore saved quests
   if (localStorage.getItem("bucketItems")) {
     bucketItems = JSON.parse(localStorage.getItem("bucketItems"));
     nextId = bucketItems.length > 0 ? Math.max(...bucketItems.map(i => i.id)) + 1 : 1;
@@ -137,30 +235,40 @@
     updateStats();
   }
 
-  addItemForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const text = itemInput.value.trim();
-    if (text) {
-      addItem(text);
-      itemInput.value = '';
-    }
+  bucketContainer.addEventListener('click', () => {
+    initialView.style.transform = 'translateY(-100vh) rotate(-10deg)';
+    initialView.style.opacity = '0';
+    setTimeout(() => {
+      initialView.style.display = 'none';
+      listView.classList.add('active');
+      setTimeout(() => itemInput.focus(), 2000);
+    }, 800);
   });
 
-  function addItem(text) {
-    const item = {
-      id: nextId++,
-      text,
-      completed: false,
-      date: null,
-      image: null
-    };
+    addItemForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const text = itemInput.value.trim();
+      if (text) {
+        addItem(text);
+        itemInput.value = '';
+      }
+    });
+
+    function addItem(text) {
+      const item = {
+        id: nextId++,
+        text: text,
+        completed: false,
+        date: '',
+        photo: ''
+      };
     bucketItems.push(item);
     saveBucketItems();
     renderList();
     updateStats();
   }
 
-  function toggleItem(id) {
+function toggleItem(id) {
     const item = bucketItems.find(i => i.id === id);
     if (!item) return;
 
@@ -171,8 +279,6 @@
       const imageUrl = prompt("Paste an image URL to remember this moment (optional):");
       if (imageUrl) {
         item.image = imageUrl;
-
-        // Save to loveGalleryBucket for use in the Timer
         const stored = JSON.parse(localStorage.getItem("loveGalleryBucket") || "[]");
         stored.push(imageUrl);
         localStorage.setItem("loveGalleryBucket", JSON.stringify(stored));
@@ -200,44 +306,31 @@
       const li = document.createElement('li');
       li.className = `bucket-item ${item.completed ? 'completed' : ''}`;
 
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = item.completed;
-      checkbox.addEventListener('change', () => toggleItem(item.id));
-
-      const span = document.createElement('span');
-      span.textContent = item.text;
-
-      li.appendChild(checkbox);
-      li.appendChild(span);
+      let html = `
+        <input 
+          type="checkbox" 
+          ${item.completed ? 'checked' : ''} 
+          onchange="toggleItem(${item.id})"
+        >
+        <span class="item-text">${item.text}</span>
+      `;
 
       if (item.completed) {
-        const dateInfo = document.createElement('div');
-        dateInfo.className = 'completion-info';
-        dateInfo.textContent = `✅ Completed: ${item.date || 'Unknown'}`;
-        li.appendChild(dateInfo);
-
+        html += `<span class="completion-info">✅ Completed: ${item.date || 'Unknown date'}</span>`;
         if (item.image) {
-          const img = document.createElement('img');
-          img.src = item.image;
-          img.className = 'completed-image';
-          li.appendChild(img);
+          html += `<img src="${item.image}" alt="Completed image" class="completed-image">`;
         }
       }
 
-      const delBtn = document.createElement('button');
-      delBtn.className = 'delete-btn';
-      delBtn.textContent = 'Delete';
-      delBtn.addEventListener('click', () => deleteItem(item.id));
-
-      li.appendChild(delBtn);
+      html += `<button class="delete-btn" onclick="deleteItem(${item.id})">Remove</button>`;
+      li.innerHTML = html;
       bucketList.appendChild(li);
     });
   }
 
   function updateStats() {
     const total = bucketItems.length;
-    const completed = bucketItems.filter(i => i.completed).length;
+    const completed = bucketItems.filter(item => item.completed).length;
     totalItemsSpan.textContent = total;
     completedItemsSpan.textContent = completed;
   }
@@ -245,7 +338,126 @@
   function saveBucketItems() {
     localStorage.setItem("bucketItems", JSON.stringify(bucketItems));
   }
-</script>
 
+  window.toggleItem = toggleItem;
+  window.deleteItem = deleteItem;
+
+    function handleExtraFields(id, field, value) {
+      const item = bucketItems.find(i => i.id === id);
+      if (item) {
+        item[field] = value;
+        renderList();
+      }
+    }
+
+function renderList() {
+  bucketList.innerHTML = '';
+  const gifOptions = [
+    'gif1.gif',
+    'gif2.gif',
+    'gif3.gif',
+    'gif4.gif',
+    'gif5.gif'
+  ];
+
+  bucketItems.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'bucket-item';
+
+    const left = document.createElement('div');
+    left.style.width = '50%';
+
+    const right = document.createElement('div');
+    right.style.width = '50%';
+
+    // Quest title on top-left
+    const title = document.createElement('div');
+    title.className = 'quest-title';
+    title.textContent = item.text;
+    left.appendChild(title);
+
+    // Toggle checkbox (hidden)
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = item.completed;
+    checkbox.onchange = () => toggleItem(item.id);
+    checkbox.style.marginTop = '10px';
+    left.appendChild(checkbox);
+
+    if (item.completed) {
+      // Set date if not already set
+      if (!item.date) {
+        const today = new Date().toISOString().split('T')[0];
+        item.date = today;
+      }
+
+      const randomGif = gifOptions[Math.floor(Math.random() * gifOptions.length)];
+      const msg = document.createElement('div');
+      msg.className = 'completion-msg';
+
+      msg.innerHTML = `
+        <img src="${randomGif}" alt="gif" style="height:80px;"><br>
+        you completed <em>${item.text}</em><br>
+        on <strong>${item.date}</strong>.
+      `;
+      left.appendChild(msg);
+
+      const dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.value = item.date;
+      dateInput.onchange = (e) => handleExtraFields(item.id, 'date', e.target.value);
+      left.appendChild(document.createElement('br'));
+      left.appendChild(dateInput);
+
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          handleExtraFields(item.id, 'photo', event.target.result);
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      };
+
+      if (!item.photo) {
+        left.appendChild(document.createElement('br'));
+        left.appendChild(fileInput);
+      }
+
+      if (item.photo) {
+        const img = document.createElement('img');
+        img.src = item.photo;
+        img.style.width = '100%';
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '10px';
+        right.appendChild(img);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove Photo';
+        removeBtn.onclick = () => removePhoto(item.id);
+        left.appendChild(document.createElement('br'));
+        left.appendChild(removeBtn);
+      }
+    }
+
+    li.appendChild(left);
+    li.appendChild(right);
+    bucketList.appendChild(li);
+  });
+}
+    window.toggleItem = toggleItem;
+    window.handleExtraFields = handleExtraFields;
+  
+    function removePhoto(id) {
+      const item = bucketItems.find(i => i.id === id);
+      if (item) {
+        item.photo = "";
+        renderList();
+      }
+    }
+    window.removePhoto = removePhoto;
+
+</script>
 </body>
 </html>
