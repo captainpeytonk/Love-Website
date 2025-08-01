@@ -1,437 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Bucket List</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Bucket List</title>
+  <style>
+    /* Existing styles retained */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
-            font-family: 'Georgia', serif;
-            overflow-x: hidden;
-        }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
 
-        .initial-view {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            transition: all 1.5s ease;
-        }
+    .initial-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      transition: all 1.5s ease;
+    }
 
-        .initial-view.hidden {
-            transform: translateY(-100vh) rotate(-10deg) !important;
-            opacity: 0 !important;
-        }
+    .initial-view.hidden {
+      transform: translateY(-100vh) rotate(-10deg) !important;
+      opacity: 0 !important;
+    }
 
-        .bucket-container {
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
+    .bucket-container {
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
 
-        .bucket-container:hover {
-            transform: scale(1.05);
-        }
+    .bucket-container:hover {
+      transform: scale(1.05);
+    }
 
-        .bucket {
-            font-size: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
-            transition: all 0.5s ease;
-        }
+    .bucket {
+      font-size: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
+      transition: all 0.5s ease;
+    }
 
-        .click-prompt {
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            animation: bounce 2s infinite;
-            white-space: nowrap;
-        }
+    .click-prompt {
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      animation: bounce 2s infinite;
+      white-space: nowrap;
+    }
 
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
-            40% { transform: translateX(-50%) translateY(-10px); }
-            60% { transform: translateX(-50%) translateY(-5px); }
-        }
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+      40% { transform: translateX(-50%) translateY(-10px); }
+      60% { transform: translateX(-50%) translateY(-5px); }
+    }
 
-        .list-view {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            min-height: 100vh;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 1s ease;
-        }
+    .list-view {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s ease;
+    }
 
-        .list-view.active {
-            opacity: 1;
-            pointer-events: all;
-        }
+    .list-view.active {
+      opacity: 1;
+      pointer-events: all;
+    }
 
-        .upside-down-bucket {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) rotate(180deg);
-            font-size: 80px;
-            filter: drop-shadow(0 -10px 20px rgba(0,0,0,0.3));
-            z-index: 10;
-            animation: bucketDrop 1s ease-out;
-        }
-
-        @keyframes bucketDrop {
-            0% {
-                transform: translateX(-50%) rotate(0deg) translateY(-100px);
-                opacity: 0;
-            }
-            50% {
-                transform: translateX(-50%) rotate(90deg) translateY(0px);
-                opacity: 0.7;
-            }
-            100% {
-                transform: translateX(-50%) rotate(180deg) translateY(0px);
-                opacity: 1;
-            }
-        }
-
-        .parchment-scroll {
-            position: absolute;
-            overflow-y: auto;
-            top: 140px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 800px;
-            min-height: calc(100vh - 160px);
-            background: linear-gradient(180deg, #f9f1d4 0%, #f4e4bc 25%, #e8d5a3 75%, #dcc48a 100%);
-            border: none;
-            box-shadow: 
-                0 0 50px rgba(139, 69, 19, 0.4),
-                inset 0 0 20px rgba(139, 69, 19, 0.1);
-            position: relative;
-            padding: 60px 40px 40px 40px;
-            animation: unfurl 2s ease-out;
-        }
-
-        @keyframes unfurl {
-            0% {
-                height: 0;
-                opacity: 0;
-                transform: translateX(-50%) scaleY(0);
-                transform-origin: top center;
-            }
-            30% {
-                height: 200px;
-                opacity: 0.3;
-                transform: translateX(-50%) scaleY(0.3);
-            }
-            60% {
-                height: 500px;
-                opacity: 0.7;
-                transform: translateX(-50%) scaleY(0.7);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(-50%) scaleY(1);
-            }
-        }
-
-        .parchment-scroll::before,
-        .parchment-scroll::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 30px;
-            background: linear-gradient(90deg, 
-                #8b4513 0%, 
-                #a0522d 10%, 
-                #cd853f 50%, 
-                #a0522d 90%, 
-                #8b4513 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .parchment-scroll::before {
-            top: 0;
-            border-radius: 15px 15px 0 0;
-        }
-
-        .parchment-scroll::after {
-            bottom: 0;
-            border-radius: 0 0 15px 15px;
-        }
-
-        .parchment-texture {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.1) 2px, transparent 2px),
-                radial-gradient(circle at 75% 75%, rgba(139, 69, 19, 0.08) 1px, transparent 1px),
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 30px,
-                    rgba(139, 69, 19, 0.05) 31px,
-                    rgba(139, 69, 19, 0.05) 32px
-                );
-            pointer-events: none;
-        }
-
-        .scroll-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        h1 {
-            text-align: center;
-            color: #654321;
-            font-size: 3em;
-            margin-bottom: 40px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            font-weight: bold;
-            font-variant: small-caps;
-            letter-spacing: 2px;
-        }
-
-        .add-item-form {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 40px;
-            align-items: center;
-            background: rgba(255,255,255,0.3);
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid #8b4513;
-        }
-
-        .add-item-input {
-            flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #8b4513;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.9);
-            font-size: 18px;
-            font-family: 'Georgia', serif;
-            color: #654321;
-        }
-
-        .add-item-input::placeholder {
-            color: #a0826d;
-            font-style: italic;
-        }
-
-        .add-btn {
-            padding: 15px 25px;
-            background: linear-gradient(45deg, #8b4513, #a0522d);
-            color: #f9f1d4;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            font-family: 'Georgia', serif;
-        }
-
-        .add-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-            background: linear-gradient(45deg, #a0522d, #8b4513);
-        }
-
-        .bucket-list {
-            list-style: none;
-        }
-
-        .bucket-item {
-            display: flex;
-            align-items: center;
-            padding: 20px;
-            margin-bottom: 15px;
-            background: rgba(255,255,255,0.6);
-            border: 2px solid #8b4513;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            position: relative;
-            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.2);
-        }
-
-        .bucket-item:hover {
-            background: rgba(255,255,255,0.8);
-            transform: translateX(10px);
-            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
-        }
-
-        .bucket-item.completed {
-            background: rgba(144,238,144,0.6);
-            text-decoration: line-through;
-            opacity: 0.8;
-        }
-
-        .bucket-item input[type="checkbox"] {
-            width: 24px;
-            height: 24px;
-            margin-right: 20px;
-            cursor: pointer;
-            accent-color: #8b4513;
-        }
-
-        .item-text {
-            flex: 1;
-            font-size: 20px;
-            color: #654321;
-            font-weight: 500;
-            line-height: 1.4;
-        }
-
-        .delete-btn {
-            background: #8b4513;
-            color: #f9f1d4;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            font-family: 'Georgia', serif;
-        }
-
-        .delete-btn:hover {
-            background: #654321;
-            transform: scale(1.1);
-        }
-
-        .stats {
-            text-align: center;
-            margin-top: 30px;
-            color: #654321;
-            font-size: 18px;
-            font-style: italic;
-            background: rgba(255,255,255,0.4);
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid #8b4513;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .parchment-scroll {
-                width: 95%;
-                padding: 40px 20px 20px 20px;
-            }
-            
-            .upside-down-bucket {
-                width: 90px;
-                height: 81px;
-            }
-            
-            h1 {
-                font-size: 2.2em;
-            }
-            
-            .add-item-form {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .add-item-input {
-                width: 100%;
-                font-size: 16px;
-            }
-            
-            .add-btn {
-                width: 100%;
-                font-size: 16px;
-            }
-            
-            .item-text {
-                font-size: 18px;
-            }
-            }
-
-.completion-info {
-    font-size: 0.9em;
-    margin-left: 10px;
-    color: #4d3c2a;
-    font-style: italic;
+.upside-down-bucket {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+  font-size: 80px;
+  filter: drop-shadow(0 -10px 20px rgba(0,0,0,0.3));
+  z-index: 999; /* Ensure it stays above everything */
+  animation: bucketDrop 1s ease-out;
 }
 
-.completed-image {
-    max-height: 80px;
-    margin-left: 15px;
-    border-radius: 8px;
-    border: 1px solid #654321;
+    @keyframes bucketDrop {
+      0% { transform: translateX(-50%) rotate(0deg) translateY(-100px); opacity: 0; }
+      50% { transform: translateX(-50%) rotate(90deg) translateY(0px); opacity: 0.7; }
+      100% { transform: translateX(-50%) rotate(180deg) translateY(0px); opacity: 1; }
+    }
+
+    .parchment-scroll {
+      position: relative;
+      top: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 800px;
+      min-height: calc(100vh - 160px);
+      background: linear-gradient(180deg, #f9f1d4 0%, #f4e4bc 25%, #e8d5a3 75%, #dcc48a 100%);
+      border: none;
+      box-shadow: 0 0 50px rgba(139, 69, 19, 0.4), inset 0 0 20px rgba(139, 69, 19, 0.1);
+      padding: 60px 40px 40px 40px;
+    }
+
+    
+    .scroll-content { position: relative; z-index: 1; }
+
+    h1 {
+      text-align: center;
+      color: #654321;
+      font-size: 3em;
+      margin-bottom: 40px;
+    }
+
+    .add-item-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .add-item-input, .add-btn {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 2px solid #8b4513;
+    }
+
+    .bucket-list {
+      list-style: none;
+      padding: 0;
+    }
+
+.bucket-item {
+  background: rgba(255,255,255,0.6);
+  border: 2px solid #8b4513;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-        }
-    </style>
+    .bucket-item.completed {
+      background: rgba(144,238,144,0.6);
+      text-decoration: line-through;
+    }
+
+    .extra-fields {
+      margin-top: 10px;
+    }
+
+    .extra-fields img {
+      max-width: 100px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+
+.quest-title {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #4b2e14;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.completion-msg {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #2f4f4f;
+  line-height: 1.4em;
+  white-space: pre-line;
+}
+    
+  </style>
 </head>
 <body>
-    <div class="initial-view" id="initialView">
-        <div class="bucket-container" id="bucketContainer">
-            <div class="click-prompt" id="clickPrompt">Click the bucket to unfurl your scroll!</div>
-            <div class="bucket">🪣</div>
-        </div>
+  <div class="initial-view" id="initialView">
+    <div class="bucket-container" id="bucketContainer">
+      <div class="click-prompt">Click the bucket to unfurl your scroll!</div>
+      <div class="bucket">🪣</div>
     </div>
+  </div>
 
-    <div class="list-view" id="listView">
-        <div class="upside-down-bucket">🪣</div>
-        
-        <div class="parchment-scroll">
-            <div class="parchment-texture"></div>
-            <div class="scroll-content">
-                <h1>My Bucket List</h1>
-                
-                <form class="add-item-form" id="addItemForm">
-                    <input 
-                        type="text" 
-                        class="add-item-input" 
-                        id="itemInput" 
-                        placeholder="What quest shall you undertake?"
-                        maxlength="100"
-                        required
-                    >
-                    <button type="submit" class="add-btn">Add Quest</button>
-                </form>
-
-                <ul class="bucket-list" id="bucketList"></ul>
-                
-                <div class="stats" id="stats">
-                    <div><strong>Total Quests:</strong> <span id="totalItems">0</span></div>
-                    <div><strong>Completed:</strong> <span id="completedItems">0</span></div>
-                </div>
-            </div>
-        </div>
+  <div class="list-view" id="listView">
+    <div class="upside-down-bucket">🪣</div>
+    <div class="parchment-scroll">
+      <div class="scroll-content">
+        <h1>My Bucket List</h1>
+        <form class="add-item-form" id="addItemForm">
+          <input type="text" class="add-item-input" id="itemInput" placeholder="What quest shall you undertake?" required>
+          <button type="submit" class="add-btn">Add Quest</button>
+        </form>
+        <ul class="bucket-list" id="bucketList"></ul>
+      </div>
     </div>
+  </div>
 
-<script>
+  <script>
     let bucketItems = [];
     let nextId = 1;
 
@@ -441,117 +224,161 @@
     const addItemForm = document.getElementById('addItemForm');
     const itemInput = document.getElementById('itemInput');
     const bucketList = document.getElementById('bucketList');
-    const totalItemsSpan = document.getElementById('totalItems');
-    const completedItemsSpan = document.getElementById('completedItems');
-    const bucketTopIcon = document.querySelector('.upside-down-bucket');
 
     bucketContainer.addEventListener('click', () => {
-        initialView.style.transform = 'translateY(-100vh) rotate(-10deg)';
-        initialView.style.opacity = '0';
-        setTimeout(() => {
-            initialView.style.display = 'none';
-            listView.classList.add('active');
-            setTimeout(() => itemInput.focus(), 2000);
-        }, 800);
+      initialView.style.transform = 'translateY(-100vh) rotate(-10deg)';
+      initialView.style.opacity = '0';
+      setTimeout(() => {
+        initialView.style.display = 'none';
+        listView.classList.add('active');
+      }, 800);
     });
 
     addItemForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const text = itemInput.value.trim();
-        if (text) {
-            addItem(text);
-            itemInput.value = '';
-        }
+      e.preventDefault();
+      const text = itemInput.value.trim();
+      if (text) {
+        addItem(text);
+        itemInput.value = '';
+      }
     });
 
     function addItem(text) {
-        const item = {
-            id: nextId++,
-            text,
-            completed: false,
-            date: null,
-            image: null
-        };
-        bucketItems.push(item);
-        renderList();
-        updateStats();
+      const item = {
+        id: nextId++,
+        text: text,
+        completed: false,
+        date: '',
+        photo: ''
+      };
+      bucketItems.push(item);
+      renderList();
     }
 
     function toggleItem(id) {
-        const item = bucketItems.find(item => item.id === id);
-        if (item) {
-            item.completed = !item.completed;
-
-            if (item.completed) {
-                item.date = prompt("When did you complete this quest? (e.g. July 25, 2025)");
-                const imageUrl = prompt("Have a picture to commemorate it? Paste the image URL (optional):");
-                if (imageUrl) item.image = imageUrl;
-            } else {
-                item.date = null;
-                item.image = null;
-            }
-
-            renderList();
-            updateStats();
-        }
-    }
-
-    function deleteItem(id) {
-        bucketItems = bucketItems.filter(item => item.id !== id);
+      const item = bucketItems.find(i => i.id === id);
+      if (item) {
+        item.completed = !item.completed;
         renderList();
-        updateStats();
+      }
     }
 
-    function renderList() {
-        bucketList.innerHTML = '';
-        bucketItems.forEach(item => {
-            const li = document.createElement('li');
-            li.className = `bucket-item ${item.completed ? 'completed' : ''}`;
-
-            let html = `
-                <input 
-                    type="checkbox" 
-                    ${item.completed ? 'checked' : ''} 
-                    onchange="toggleItem(${item.id})"
-                >
-                <span class="item-text">${item.text}</span>
-            `;
-
-            if (item.completed) {
-                html += `<span class="completion-info">✅ Completed: ${item.date || 'Unknown date'}</span>`;
-                if (item.image) {
-                    html += `<img src="${item.image}" alt="Completed image" class="completed-image">`;
-                }
-            }
-
-            html += `<button class="delete-btn" onclick="deleteItem(${item.id})">Remove</button>`;
-            li.innerHTML = html;
-            bucketList.appendChild(li);
-        });
+    function handleExtraFields(id, field, value) {
+      const item = bucketItems.find(i => i.id === id);
+      if (item) {
+        item[field] = value;
+        renderList();
+      }
     }
 
-    function updateStats() {
-        const total = bucketItems.length;
-        const completed = bucketItems.filter(item => item.completed).length;
-        totalItemsSpan.textContent = total;
-        completedItemsSpan.textContent = completed;
+function renderList() {
+  bucketList.innerHTML = '';
+  const gifOptions = [
+    'gif1.gif',
+    'gif2.gif',
+    'gif3.gif',
+    'gif4.gif',
+    'gif5.gif'
+  ];
+
+  bucketItems.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'bucket-item';
+
+    const left = document.createElement('div');
+    left.style.width = '50%';
+
+    const right = document.createElement('div');
+    right.style.width = '50%';
+
+    // Quest title on top-left
+    const title = document.createElement('div');
+    title.className = 'quest-title';
+    title.textContent = item.text;
+    left.appendChild(title);
+
+    // Toggle checkbox (hidden)
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = item.completed;
+    checkbox.onchange = () => toggleItem(item.id);
+    checkbox.style.marginTop = '10px';
+    left.appendChild(checkbox);
+
+    if (item.completed) {
+      // Set date if not already set
+      if (!item.date) {
+        const today = new Date().toISOString().split('T')[0];
+        item.date = today;
+      }
+
+      const randomGif = gifOptions[Math.floor(Math.random() * gifOptions.length)];
+      const msg = document.createElement('div');
+      msg.className = 'completion-msg';
+
+      msg.innerHTML = `
+        <img src="${randomGif}" alt="gif" style="height:80px;"><br>
+        you completed <em>${item.text}</em><br>
+        on <strong>${item.date}</strong>.
+      `;
+      left.appendChild(msg);
+
+      const dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.value = item.date;
+      dateInput.onchange = (e) => handleExtraFields(item.id, 'date', e.target.value);
+      left.appendChild(document.createElement('br'));
+      left.appendChild(dateInput);
+
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          handleExtraFields(item.id, 'photo', event.target.result);
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      };
+
+      if (!item.photo) {
+        left.appendChild(document.createElement('br'));
+        left.appendChild(fileInput);
+      }
+
+      if (item.photo) {
+        const img = document.createElement('img');
+        img.src = item.photo;
+        img.style.width = '100%';
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '10px';
+        right.appendChild(img);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove Photo';
+        removeBtn.onclick = () => removePhoto(item.id);
+        left.appendChild(document.createElement('br'));
+        left.appendChild(removeBtn);
+      }
     }
 
-    // Expose to global for inline HTML
+    li.appendChild(left);
+    li.appendChild(right);
+    bucketList.appendChild(li);
+  });
+}
     window.toggleItem = toggleItem;
-    window.deleteItem = deleteItem;
+    window.handleExtraFields = handleExtraFields;
+  
+    function removePhoto(id) {
+      const item = bucketItems.find(i => i.id === id);
+      if (item) {
+        item.photo = "";
+        renderList();
+      }
+    }
+    window.removePhoto = removePhoto;
 
-    // Hide the top bucket when scrolling down
-    document.querySelector('.parchment-scroll').addEventListener('scroll', function() {
-        const topBucket = document.querySelector('.upside-down-bucket');
-        if (this.scrollTop > 30) {
-            topBucket.style.opacity = '0';
-            topBucket.style.pointerEvents = 'none';
-        } else {
-            topBucket.style.opacity = '1';
-            topBucket.style.pointerEvents = 'auto';
-        }
-    });
 </script>
 </body>
 </html>
