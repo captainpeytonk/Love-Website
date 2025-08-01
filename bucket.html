@@ -218,32 +218,21 @@
     let bucketItems = [];
     let nextId = 1;
 
-  const initialView = document.getElementById('initialView');
-  const listView = document.getElementById('listView');
-  const bucketContainer = document.getElementById('bucketContainer');
-  const addItemForm = document.getElementById('addItemForm');
-  const itemInput = document.getElementById('itemInput');
-  const bucketList = document.getElementById('bucketList');
-  const totalItemsSpan = document.getElementById('totalItems');
-  const completedItemsSpan = document.getElementById('completedItems');
+    const initialView = document.getElementById('initialView');
+    const listView = document.getElementById('listView');
+    const bucketContainer = document.getElementById('bucketContainer');
+    const addItemForm = document.getElementById('addItemForm');
+    const itemInput = document.getElementById('itemInput');
+    const bucketList = document.getElementById('bucketList');
 
-  // Restore saved quests
-  if (localStorage.getItem("bucketItems")) {
-    bucketItems = JSON.parse(localStorage.getItem("bucketItems"));
-    nextId = bucketItems.length > 0 ? Math.max(...bucketItems.map(i => i.id)) + 1 : 1;
-    renderList();
-    updateStats();
-  }
-
-  bucketContainer.addEventListener('click', () => {
-    initialView.style.transform = 'translateY(-100vh) rotate(-10deg)';
-    initialView.style.opacity = '0';
-    setTimeout(() => {
-      initialView.style.display = 'none';
-      listView.classList.add('active');
-      setTimeout(() => itemInput.focus(), 2000);
-    }, 800);
-  });
+    bucketContainer.addEventListener('click', () => {
+      initialView.style.transform = 'translateY(-100vh) rotate(-10deg)';
+      initialView.style.opacity = '0';
+      setTimeout(() => {
+        initialView.style.display = 'none';
+        listView.classList.add('active');
+      }, 800);
+    });
 
     addItemForm.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -262,85 +251,17 @@
         date: '',
         photo: ''
       };
-    bucketItems.push(item);
-    saveBucketItems();
-    renderList();
-    updateStats();
-  }
-
-function toggleItem(id) {
-    const item = bucketItems.find(i => i.id === id);
-    if (!item) return;
-
-    item.completed = !item.completed;
-
-    if (item.completed) {
-      item.date = prompt("When did you complete this quest? (e.g. July 25, 2025)");
-      const imageUrl = prompt("Paste an image URL to remember this moment (optional):");
-      if (imageUrl) {
-        item.image = imageUrl;
-        const stored = JSON.parse(localStorage.getItem("loveGalleryBucket") || "[]");
-        stored.push(imageUrl);
-        localStorage.setItem("loveGalleryBucket", JSON.stringify(stored));
-      }
-    } else {
-      item.date = null;
-      item.image = null;
+      bucketItems.push(item);
+      renderList();
     }
 
-    saveBucketItems();
-    renderList();
-    updateStats();
-  }
-
-  function deleteItem(id) {
-    bucketItems = bucketItems.filter(item => item.id !== id);
-    saveBucketItems();
-    renderList();
-    updateStats();
-  }
-
-  function renderList() {
-    bucketList.innerHTML = '';
-    bucketItems.forEach(item => {
-      const li = document.createElement('li');
-      li.className = `bucket-item ${item.completed ? 'completed' : ''}`;
-
-      let html = `
-        <input 
-          type="checkbox" 
-          ${item.completed ? 'checked' : ''} 
-          onchange="toggleItem(${item.id})"
-        >
-        <span class="item-text">${item.text}</span>
-      `;
-
-      if (item.completed) {
-        html += `<span class="completion-info">✅ Completed: ${item.date || 'Unknown date'}</span>`;
-        if (item.image) {
-          html += `<img src="${item.image}" alt="Completed image" class="completed-image">`;
-        }
+    function toggleItem(id) {
+      const item = bucketItems.find(i => i.id === id);
+      if (item) {
+        item.completed = !item.completed;
+        renderList();
       }
-
-      html += `<button class="delete-btn" onclick="deleteItem(${item.id})">Remove</button>`;
-      li.innerHTML = html;
-      bucketList.appendChild(li);
-    });
-  }
-
-  function updateStats() {
-    const total = bucketItems.length;
-    const completed = bucketItems.filter(item => item.completed).length;
-    totalItemsSpan.textContent = total;
-    completedItemsSpan.textContent = completed;
-  }
-
-  function saveBucketItems() {
-    localStorage.setItem("bucketItems", JSON.stringify(bucketItems));
-  }
-
-  window.toggleItem = toggleItem;
-  window.deleteItem = deleteItem;
+    }
 
     function handleExtraFields(id, field, value) {
       const item = bucketItems.find(i => i.id === id);
