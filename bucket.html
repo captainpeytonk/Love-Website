@@ -1,270 +1,384 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Love Timeline</title>
-<style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #fff0f5;
-    color: #333;
-    margin: 0;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  h1 {
-    color: #d63384;
-    margin-bottom: 2rem;
-  }
-  #addButton {
-    font-size: 4rem;
-    color: #d63384;
-    cursor: pointer;
-    user-select: none;
-    border: 3px dashed #d63384;
-    border-radius: 50%;
-    width: 80px;
-    height: 80px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 1rem;
-    transition: background 0.3s ease;
-  }
-  #addButton:hover {
-    background: #f8d7e4;
-  }
-  #eventForm {
-    background: #fff;
-    border: 2px solid #d63384;
-    border-radius: 1rem;
-    padding: 1rem 1.5rem;
-    max-width: 400px;
-    width: 100%;
-    margin-bottom: 2rem;
-    display: none;
-    flex-direction: column;
-  }
-  #eventForm input[type="text"],
-  #eventForm input[type="date"] {
-    font-size: 1rem;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #ccc;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  #eventForm button {
-    background: #d63384;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    padding: 0.7rem;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  #eventForm button:disabled {
-    background: #eaa6c0;
-    cursor: default;
-  }
-  #eventsList {
-    max-width: 400px;
-    width: 100%;
-  }
-  .event-card {
-    position: relative;
-    background: #fff;
-    border: 2px solid #d63384;
-    border-radius: 1rem;
-    padding: 1rem 1.5rem 1.5rem 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-  }
-  .event-info {
-    margin-bottom: 0.5rem;
-  }
-  .event-name {
-    font-weight: bold;
-    color: #d63384;
-    margin-bottom: 0.3rem;
-    font-size: 1.2rem;
-  }
-  .event-date {
-    font-size: 1rem;
-    color: #666;
-  }
-  .event-timer {
-    font-size: 1rem;
-    margin-top: 0.7rem;
-    color: #555;
-  }
-  .delete-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: transparent;
-    border: none;
-    color: #d63384;
-    font-size: 1.2rem;
-    cursor: pointer;
-    user-select: none;
-    line-height: 1;
-    padding: 0;
-  }
-  .delete-btn:hover {
-    color: #a02862;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Bucket List</title>
+  <style>
+    /* Existing styles retained */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    .initial-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      transition: all 1.5s ease;
+    }
+
+    .initial-view.hidden {
+      transform: translateY(-100vh) rotate(-10deg) !important;
+      opacity: 0 !important;
+    }
+
+    .bucket-container {
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .bucket-container:hover {
+      transform: scale(1.05);
+    }
+
+    .bucket {
+      font-size: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
+      transition: all 0.5s ease;
+    }
+
+    .click-prompt {
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      animation: bounce 2s infinite;
+      white-space: nowrap;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+      40% { transform: translateX(-50%) translateY(-10px); }
+      60% { transform: translateX(-50%) translateY(-5px); }
+    }
+
+    .list-view {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s ease;
+    }
+
+    .list-view.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+.upside-down-bucket {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+  font-size: 80px;
+  filter: drop-shadow(0 -10px 20px rgba(0,0,0,0.3));
+  z-index: 999; /* Ensure it stays above everything */
+  animation: bucketDrop 1s ease-out;
+}
+
+    @keyframes bucketDrop {
+      0% { transform: translateX(-50%) rotate(0deg) translateY(-100px); opacity: 0; }
+      50% { transform: translateX(-50%) rotate(90deg) translateY(0px); opacity: 0.7; }
+      100% { transform: translateX(-50%) rotate(180deg) translateY(0px); opacity: 1; }
+    }
+
+    .parchment-scroll {
+      position: relative;
+      top: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 800px;
+      min-height: calc(100vh - 160px);
+      background: linear-gradient(180deg, #f9f1d4 0%, #f4e4bc 25%, #e8d5a3 75%, #dcc48a 100%);
+      border: none;
+      box-shadow: 0 0 50px rgba(139, 69, 19, 0.4), inset 0 0 20px rgba(139, 69, 19, 0.1);
+      padding: 60px 40px 40px 40px;
+    }
+
+    
+    .scroll-content { position: relative; z-index: 1; }
+
+    h1 {
+      text-align: center;
+      color: #654321;
+      font-size: 3em;
+      margin-bottom: 40px;
+    }
+
+    .add-item-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .add-item-input, .add-btn {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 2px solid #8b4513;
+    }
+
+    .bucket-list {
+      list-style: none;
+      padding: 0;
+    }
+
+.bucket-item {
+  background: rgba(255,255,255,0.6);
+  border: 2px solid #8b4513;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+    .bucket-item.completed {
+      background: rgba(144,238,144,0.6);
+      text-decoration: line-through;
+    }
+
+    .extra-fields {
+      margin-top: 10px;
+    }
+
+    .extra-fields img {
+      max-width: 100px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+
+.quest-title {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #4b2e14;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.completion-msg {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #2f4f4f;
+  line-height: 1.4em;
+  white-space: pre-line;
+}
+    
+  </style>
 </head>
 <body>
+  <div class="initial-view" id="initialView">
+    <div class="bucket-container" id="bucketContainer">
+      <div class="click-prompt">Click the bucket to unfurl your scroll!</div>
+      <div class="bucket">🪣</div>
+    </div>
+  </div>
 
-<h1>💕 Our Love Timeline</h1>
+  <div class="list-view" id="listView">
+    <div class="upside-down-bucket">🪣</div>
+    <div class="parchment-scroll">
+      <div class="scroll-content">
+        <h1>My Bucket List</h1>
+        <form class="add-item-form" id="addItemForm">
+          <input type="text" class="add-item-input" id="itemInput" placeholder="What quest shall you undertake?" required>
+          <button type="submit" class="add-btn">Add Quest</button>
+        </form>
+        <ul class="bucket-list" id="bucketList"></ul>
+      </div>
+    </div>
+  </div>
 
-<div id="addButton" title="Add a new event">＋</div>
+  <script>
+    let bucketItems = [];
+    let nextId = 1;
 
-<form id="eventForm" aria-label="Add a new event">
-  <input type="text" id="eventName" placeholder="Event name (e.g. 'Together Since')" required />
-  <input type="date" id="eventDate" required />
-  <button type="submit" disabled>Add Event</button>
-</form>
+    const initialView = document.getElementById('initialView');
+    const listView = document.getElementById('listView');
+    const bucketContainer = document.getElementById('bucketContainer');
+    const addItemForm = document.getElementById('addItemForm');
+    const itemInput = document.getElementById('itemInput');
+    const bucketList = document.getElementById('bucketList');
 
-<div id="eventsList"></div>
-
-<script>
-  const addButton = document.getElementById('addButton');
-  const eventForm = document.getElementById('eventForm');
-  const eventNameInput = document.getElementById('eventName');
-  const eventDateInput = document.getElementById('eventDate');
-  const submitBtn = eventForm.querySelector('button');
-  const eventsList = document.getElementById('eventsList');
-
-  let events = [];
-
-  // Show form when + button clicked
-  addButton.addEventListener('click', () => {
-    addButton.style.display = 'none';
-    eventForm.style.display = 'flex';
-    eventNameInput.focus();
-  });
-
-  // Enable submit if both fields have value
-  function checkInputs() {
-    submitBtn.disabled = !(eventNameInput.value.trim() && eventDateInput.value);
-  }
-
-  eventNameInput.addEventListener('input', checkInputs);
-  eventDateInput.addEventListener('input', checkInputs);
-
-  // Format date as DD/MM/YYYY for display
-  function formatDateDMY(dateStr) {
-    const d = new Date(dateStr + "T00:00:00");
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
-  }
-
-  // Add event on form submit
-  eventForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = eventNameInput.value.trim();
-    const date = eventDateInput.value;
-
-    if (!name || !date) return; // safety check
-
-    events.push({ name, date });
-    eventNameInput.value = '';
-    eventDateInput.value = '';
-    submitBtn.disabled = true;
-
-    eventForm.style.display = 'none';
-    addButton.style.display = 'flex';
-    renderEvents();
-  });
-
-  // Delete event by index
-  function deleteEvent(index) {
-    events.splice(index, 1);
-    renderEvents();
-  }
-
-  // Render all events
-  function renderEvents() {
-    eventsList.innerHTML = '';
-    if (events.length === 0) return;
-
-    events.forEach((event, i) => {
-      const card = document.createElement('div');
-      card.className = 'event-card';
-
-      const info = document.createElement('div');
-      info.className = 'event-info';
-
-      const name = document.createElement('div');
-      name.className = 'event-name';
-      name.textContent = event.name;
-
-      const date = document.createElement('div');
-      date.className = 'event-date';
-      date.textContent = formatDateDMY(event.date);
-
-      const timer = document.createElement('div');
-      timer.className = 'event-timer';
-      timer.id = `timer-${i}`;
-
-      info.appendChild(name);
-      info.appendChild(date);
-      info.appendChild(timer);
-
-      const delBtn = document.createElement('button');
-      delBtn.className = 'delete-btn';
-      delBtn.innerHTML = '🗑️';
-      delBtn.title = 'Delete event';
-      delBtn.addEventListener('click', () => deleteEvent(i));
-
-      card.appendChild(info);
-      card.appendChild(delBtn);
-
-      eventsList.appendChild(card);
+    bucketContainer.addEventListener('click', () => {
+      initialView.style.transform = 'translateY(-100vh) rotate(-10deg)';
+      initialView.style.opacity = '0';
+      setTimeout(() => {
+        initialView.style.display = 'none';
+        listView.classList.add('active');
+      }, 800);
     });
-  }
 
-  // Update timers every second
-  function updateTimers() {
-    const now = new Date();
-
-    events.forEach((event, i) => {
-      const eventDate = new Date(event.date + "T00:00:00");
-      let diff = now - eventDate;
-      if (diff < 0) diff = 0;
-
-      let totalSeconds = Math.floor(diff / 1000);
-      const seconds = totalSeconds % 60;
-      const totalMinutes = Math.floor(totalSeconds / 60);
-      const minutes = totalMinutes % 60;
-      const totalHours = Math.floor(totalMinutes / 60);
-      const hours = totalHours % 24;
-      const totalDays = Math.floor(totalHours / 24);
-
-      const years = Math.floor(totalDays / 365.25);
-      const months = Math.floor((totalDays % 365.25) / 30.44);
-      const days = Math.floor((totalDays % 365.25) % 30.44);
-
-      const text = `⏳ ${years} Years ${months} Months ${days} Days ${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
-
-      const timerEl = document.getElementById(`timer-${i}`);
-      if (timerEl) timerEl.textContent = text;
+    addItemForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const text = itemInput.value.trim();
+      if (text) {
+        addItem(text);
+        itemInput.value = '';
+      }
     });
-  }
 
-  setInterval(updateTimers, 1000);
+    function addItem(text) {
+      const item = {
+        id: nextId++,
+        text: text,
+        completed: false,
+        date: '',
+        photo: ''
+      };
+      bucketItems.push(item);
+      renderList();
+    }
+
+    function toggleItem(id) {
+      const item = bucketItems.find(i => i.id === id);
+      if (item) {
+        item.completed = !item.completed;
+        renderList();
+      }
+    }
+
+    function handleExtraFields(id, field, value) {
+      const item = bucketItems.find(i => i.id === id);
+      if (item) {
+        item[field] = value;
+        renderList();
+      }
+    }
+
+function renderList() {
+  bucketList.innerHTML = '';
+  const gifOptions = [
+    'gif1.gif',
+    'gif2.gif',
+    'gif3.gif',
+    'gif4.gif',
+    'gif5.gif'
+  ];
+
+  bucketItems.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'bucket-item';
+
+    const left = document.createElement('div');
+    left.style.width = '50%';
+
+    const right = document.createElement('div');
+    right.style.width = '50%';
+
+    // Quest title on top-left
+    const title = document.createElement('div');
+    title.className = 'quest-title';
+    title.textContent = item.text;
+    left.appendChild(title);
+
+    // Toggle checkbox (hidden)
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = item.completed;
+    checkbox.onchange = () => toggleItem(item.id);
+    checkbox.style.marginTop = '10px';
+    left.appendChild(checkbox);
+
+    if (item.completed) {
+      // Set date if not already set
+      if (!item.date) {
+        const today = new Date().toISOString().split('T')[0];
+        item.date = today;
+      }
+
+      const randomGif = gifOptions[Math.floor(Math.random() * gifOptions.length)];
+      const msg = document.createElement('div');
+      msg.className = 'completion-msg';
+
+      msg.innerHTML = `
+        <img src="${randomGif}" alt="gif" style="height:80px;"><br>
+        you completed <em>${item.text}</em><br>
+        on <strong>${item.date}</strong>.
+      `;
+      left.appendChild(msg);
+
+      const dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.value = item.date;
+      dateInput.onchange = (e) => handleExtraFields(item.id, 'date', e.target.value);
+      left.appendChild(document.createElement('br'));
+      left.appendChild(dateInput);
+
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          handleExtraFields(item.id, 'photo', event.target.result);
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      };
+
+      if (!item.photo) {
+        left.appendChild(document.createElement('br'));
+        left.appendChild(fileInput);
+      }
+
+      if (item.photo) {
+        const img = document.createElement('img');
+        img.src = item.photo;
+        img.style.width = '100%';
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '10px';
+        right.appendChild(img);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove Photo';
+        removeBtn.onclick = () => removePhoto(item.id);
+        left.appendChild(document.createElement('br'));
+        left.appendChild(removeBtn);
+      }
+    }
+
+    li.appendChild(left);
+    li.appendChild(right);
+    bucketList.appendChild(li);
+  });
+}
+    window.toggleItem = toggleItem;
+    window.handleExtraFields = handleExtraFields;
+  
+    function removePhoto(id) {
+      const item = bucketItems.find(i => i.id === id);
+      if (item) {
+        item.photo = "";
+        renderList();
+      }
+    }
+    window.removePhoto = removePhoto;
+
 </script>
-
 </body>
 </html>
