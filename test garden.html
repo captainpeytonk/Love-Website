@@ -508,59 +508,61 @@ charMenu.querySelectorAll('button').forEach(btn => {
 
 function startCharacterMovement(character) {
     const type = character.dataset.characterType;
+    
     if (type === 'bunny') {
         character.style.animation = 'hop 3s infinite';
         moveRandomly(character, 3000, 4000);
+        
     } else if (type === 'snake') {
         character.style.animation = 'none';
-let x = Math.random() * window.innerWidth;
-let baseY = Math.random() * window.innerHeight;
-let t = 0;
+        
+        let x = Math.random() * window.innerWidth;
+        let baseY = Math.random() * window.innerHeight;
+        let t = 0;
 
-function slither() {
-    if (character.dataset.paused === 'true') {
-        requestAnimationFrame(slither);
-        return;
-    }
+        function slither() {
+            if (character.dataset.paused === 'true') {
+                requestAnimationFrame(slither);
+                return;
+            }
 
-    x += 4; // Constant visible speed
-    let y = baseY + Math.sin(t * 0.1) * 50; // Zigzag vertically
+            x += 4; // horizontal speed
+            let y = baseY + Math.sin(t * 0.1) * 50; // zigzag
 
-    character.style.left = (x % window.innerWidth) + 'px';
-    character.style.top = y + 'px';
+            character.style.left = (x % window.innerWidth) + 'px';
+            character.style.top = y + 'px';
 
-    t++;
-    requestAnimationFrame(slither);
-}
-slither();
-
-} else if (type === 'walker') {
-    character.style.animation = 'none';
-
-    let x = Math.random() * window.innerWidth;
-    let y = Math.random() * window.innerHeight;
-
-    function walk() {
-        if (character.dataset.paused === 'true') {
-            requestAnimationFrame(walk);
-            return;
+            t++;
+            requestAnimationFrame(slither);
         }
+        slither();
 
-        // Pick a small step in a random direction
-        const angle = Math.random() * 2 * Math.PI;
-        x += Math.cos(angle) * 5;
-        y += Math.sin(angle) * 5;
+    } else if (type === 'walker') {
+        character.style.animation = 'none';
 
-        // Keep within bounds
-        x = Math.max(0, Math.min(window.innerWidth - 100, x));
-        y = Math.max(0, Math.min(window.innerHeight - 100, y));
+        let x = Math.random() * window.innerWidth;
+        let y = Math.random() * window.innerHeight;
 
-        character.style.left = x + 'px';
-        character.style.top = y + 'px';
+        function walk() {
+            if (character.dataset.paused === 'true') {
+                requestAnimationFrame(walk);
+                return;
+            }
 
-        requestAnimationFrame(walk);
+            const angle = Math.random() * 2 * Math.PI;
+            x += Math.cos(angle) * 5;
+            y += Math.sin(angle) * 5;
+
+            x = Math.max(0, Math.min(window.innerWidth - 100, x));
+            y = Math.max(0, Math.min(window.innerHeight - 100, y));
+
+            character.style.left = x + 'px';
+            character.style.top = y + 'px';
+
+            requestAnimationFrame(walk);
+        }
+        walk();
     }
-    walk();
 }
 
 
