@@ -513,25 +513,44 @@ function startCharacterMovement(character) {
         character.style.animation = 'hop 3s infinite';
         moveRandomly(character, 3000, 4000);
 
-    } else if (type === 'snake') {
-        character.style.animation = 'none';
+} else if (type === 'snake') {
+    character.style.animation = 'none';
 
-        let x = Math.random() * window.innerWidth;
-        let baseY = Math.random() * window.innerHeight;
-        let t = 0;
-        let speed = window.innerWidth * 0.05 / 60; // 5% per sec
+    // Starting position & direction
+    let x = -100; // start slightly offscreen left
+    let baseY = Math.random() * (window.innerHeight - 100);
+    let t = 0;
 
-        function slither() {
-            x += speed;
-            let y = baseY + Math.sin(t * 0.1) * 50;
+    // Speed in pixels per frame (~60fps)
+    let speedX = 8; // horizontal speed
+    let amplitude = 50; // zigzag height
+    let frequency = 0.05; // zigzag wave frequency
 
-            character.style.left = x + 'px';
-            character.style.top = y + 'px';
+    function slither() {
+        // Move horizontally
+        x += speedX;
 
-            t++;
-            requestAnimationFrame(slither);
+        // Zigzag vertically
+        let y = baseY + Math.sin(t * frequency) * amplitude;
+
+        // Update position
+        character.style.left = x + 'px';
+        character.style.top = y + 'px';
+
+        // Reset when offscreen right
+        if (x > window.innerWidth + 100) {
+            x = -100;
+            baseY = Math.random() * (window.innerHeight - 100);
+            t = 0;
         }
-        slither();
+
+        t++;
+        requestAnimationFrame(slither);
+    }
+
+    slither();
+}
+
 
     } else if (type === 'walker') {
         character.style.animation = 'none';
