@@ -513,11 +513,8 @@ function startCharacterMovement(character) {
         moveRandomly(character, 3000, 4000);
     } else if (type === 'snake') {
         character.style.animation = 'none';
- let x = Math.random() * window.innerWidth;
-let y = Math.random() * window.innerHeight;
-let amplitude = 50;  // how much vertical "zig-zag"
-let frequency = 0.1; // controls the wave frequency
-let speed = window.innerWidth * 0.01; // 1% of screen per frame
+let x = Math.random() * window.innerWidth;
+let baseY = Math.random() * window.innerHeight;
 let t = 0;
 
 function slither() {
@@ -526,20 +523,44 @@ function slither() {
         return;
     }
 
-    x += speed;
-    let newY = y + Math.sin(t * frequency) * amplitude;
-    
+    x += 4; // Constant visible speed
+    let y = baseY + Math.sin(t * 0.1) * 50; // Zigzag vertically
+
     character.style.left = (x % window.innerWidth) + 'px';
-    character.style.top = (newY % window.innerHeight) + 'px';
-    
+    character.style.top = y + 'px';
+
     t++;
     requestAnimationFrame(slither);
 }
 slither();
-    } else if (type === 'walker') {
-        character.style.animation = 'hop 7s infinite';
-        moveRandomly(character, 3000, 4000, 30);
+
+} else if (type === 'walker') {
+    character.style.animation = 'none';
+
+    let x = Math.random() * window.innerWidth;
+    let y = Math.random() * window.innerHeight;
+
+    function walk() {
+        if (character.dataset.paused === 'true') {
+            requestAnimationFrame(walk);
+            return;
+        }
+
+        // Pick a small step in a random direction
+        const angle = Math.random() * 2 * Math.PI;
+        x += Math.cos(angle) * 5;
+        y += Math.sin(angle) * 5;
+
+        // Keep within bounds
+        x = Math.max(0, Math.min(window.innerWidth - 100, x));
+        y = Math.max(0, Math.min(window.innerHeight - 100, y));
+
+        character.style.left = x + 'px';
+        character.style.top = y + 'px';
+
+        requestAnimationFrame(walk);
     }
+    walk();
 }
 
 function moveRandomly(character, minDelay, maxDelay, step=200) {
