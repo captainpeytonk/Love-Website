@@ -490,7 +490,7 @@ let characterType = 'bunny';
 const charMenu = document.createElement('div');
 charMenu.innerHTML = `
     <button class="function-btn active" data-character="bunny">Bunny</button>
-    <button class="function-btn" data-character="snake">Snake</button>
+    <button class="function-btn" data-character="spikey">Spikey</button>
     <button class="function-btn" data-character="walker">Walker</button>
 `;
 charMenu.style.display = 'flex';
@@ -513,44 +513,64 @@ function startCharacterMovement(character) {
         character.style.animation = 'hop 3s infinite';
         moveRandomly(character, 3000, 4000);
 
-} else if (type === 'snake') {
+} else if (type === 'spikey') {
     character.style.animation = 'none';
 
-    // Starting position & direction
-    let x = -100; // start slightly offscreen left
-    let baseY = Math.random() * (window.innerHeight - 100);
-    let t = 0;
+    // Start just off left side
+    let x = -100;
+    let y = Math.random() * (window.innerHeight - 100);
+    let speedX = 6; // horizontal speed
+    let speedY = 4; // vertical diagonal speed
+    let direction = 1; // 1 = down, -1 = up
+    let segmentLength = 60; // frames before changing vertical direction
+    let frameCount = 0;
 
-    // Speed in pixels per frame (~60fps)
-    let speedX = 8; // horizontal speed
-    let amplitude = 50; // zigzag height
-    let frequency = 0.05; // zigzag wave frequency
+    function moveSpikey() {
+        if (character.dataset.paused === 'true') {
+            requestAnimationFrame(moveSpikey);
+            return;
+        }
 
-    function slither() {
-        // Move horizontally
+        // Move diagonally
         x += speedX;
+        y += speedY * direction;
 
-        // Zigzag vertically
-        let y = baseY + Math.sin(t * frequency) * amplitude;
+        // Switch direction after segmentLength frames
+        frameCount++;
+        if (frameCount >= segmentLength) {
+            direction *= -1;
+            frameCount = 0;
+        }
 
-        // Update position
+        // Keep within vertical bounds
+        if (y < 0) {
+            y = 0;
+            direction = 1;
+            frameCount = 0;
+        }
+        if (y > window.innerHeight - 100) {
+            y = window.innerHeight - 100;
+            direction = -1;
+            frameCount = 0;
+        }
+
+        // Loop when off right side
+        if (x > window.innerWidth + 100) {
+            x = -100;
+            y = Math.random() * (window.innerHeight - 100);
+            direction = 1;
+            frameCount = 0;
+        }
+
+        // Apply position
         character.style.left = x + 'px';
         character.style.top = y + 'px';
 
-        // Reset when offscreen right
-        if (x > window.innerWidth + 100) {
-            x = -100;
-            baseY = Math.random() * (window.innerHeight - 100);
-            t = 0;
-        }
-
-        t++;
-        requestAnimationFrame(slither);
+        requestAnimationFrame(moveSpikey);
     }
 
-    slither();
+    moveSpikey();
 }
-
 
     } else if (type === 'walker') {
         character.style.animation = 'none';
