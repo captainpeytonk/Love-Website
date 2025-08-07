@@ -513,20 +513,31 @@ function startCharacterMovement(character) {
         moveRandomly(character, 3000, 4000);
     } else if (type === 'snake') {
         character.style.animation = 'none';
-        let x = Math.random() * window.innerWidth;
-        let y = Math.random() * window.innerHeight;
-        let t = 0;
-        function slither() {
-x += window.innerWidth * 0.05;
-y += Math.sin(t / 5) * 3;
-            character.style.left = (x % window.innerWidth) + 'px';
-            character.style.top = (y % window.innerHeight) + 'px';
-            t++;
-            requestAnimationFrame(slither);
-        }
-        slither();
+ let x = Math.random() * window.innerWidth;
+let y = Math.random() * window.innerHeight;
+let amplitude = 50;  // how much vertical "zig-zag"
+let frequency = 0.1; // controls the wave frequency
+let speed = window.innerWidth * 0.01; // 1% of screen per frame
+let t = 0;
+
+function slither() {
+    if (character.dataset.paused === 'true') {
+        requestAnimationFrame(slither);
+        return;
+    }
+
+    x += speed;
+    let newY = y + Math.sin(t * frequency) * amplitude;
+    
+    character.style.left = (x % window.innerWidth) + 'px';
+    character.style.top = (newY % window.innerHeight) + 'px';
+    
+    t++;
+    requestAnimationFrame(slither);
+}
+slither();
     } else if (type === 'walker') {
-        character.style.animation = 'hop 2s infinite';
+        character.style.animation = 'hop 7s infinite';
         moveRandomly(character, 3000, 4000, 30);
     }
 }
