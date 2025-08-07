@@ -522,15 +522,10 @@ function startCharacterMovement(character) {
         let speed = window.innerWidth * 0.05 / 60; // 5% per sec
 
         function slither() {
-            if (character.dataset.paused === 'true') {
-                requestAnimationFrame(slither);
-                return;
-            }
-
             x += speed;
             let y = baseY + Math.sin(t * 0.1) * 50;
 
-            character.style.left = (x % window.innerWidth) + 'px';
+            character.style.left = x + 'px';
             character.style.top = y + 'px';
 
             t++;
