@@ -563,18 +563,6 @@ slither();
     walk();
 }
 
-function moveRandomly(character, minDelay, maxDelay, step=200) {
-    function move() {
-        const x = Math.random() * (window.innerWidth - step);
-        const y = Math.random() * (window.innerHeight - step);
-        if (character.dataset.paused !== 'true') {
-            character.style.left = x + 'px';
-            character.style.top = y + 'px';
-        }
-        setTimeout(move, minDelay + Math.random() * (maxDelay - minDelay));
-    }
-    setTimeout(move, minDelay);
-}
 
 // Toggle UI
 document.getElementById('toggle-ui').addEventListener('click', () => {
