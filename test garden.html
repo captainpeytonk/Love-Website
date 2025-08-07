@@ -508,17 +508,18 @@ charMenu.querySelectorAll('button').forEach(btn => {
 
 function startCharacterMovement(character) {
     const type = character.dataset.characterType;
-    
+
     if (type === 'bunny') {
         character.style.animation = 'hop 3s infinite';
         moveRandomly(character, 3000, 4000);
-        
+
     } else if (type === 'snake') {
         character.style.animation = 'none';
-        
+
         let x = Math.random() * window.innerWidth;
         let baseY = Math.random() * window.innerHeight;
         let t = 0;
+        let speed = window.innerWidth * 0.05 / 60; // 5% per sec
 
         function slither() {
             if (character.dataset.paused === 'true') {
@@ -526,8 +527,8 @@ function startCharacterMovement(character) {
                 return;
             }
 
-            x += 4; // horizontal speed
-            let y = baseY + Math.sin(t * 0.1) * 50; // zigzag
+            x += speed;
+            let y = baseY + Math.sin(t * 0.1) * 50;
 
             character.style.left = (x % window.innerWidth) + 'px';
             character.style.top = y + 'px';
@@ -542,6 +543,8 @@ function startCharacterMovement(character) {
 
         let x = Math.random() * window.innerWidth;
         let y = Math.random() * window.innerHeight;
+        let angle = Math.random() * 2 * Math.PI;
+        let step = 2; // pixels per frame
 
         function walk() {
             if (character.dataset.paused === 'true') {
@@ -549,12 +552,12 @@ function startCharacterMovement(character) {
                 return;
             }
 
-            const angle = Math.random() * 2 * Math.PI;
-            x += Math.cos(angle) * 5;
-            y += Math.sin(angle) * 5;
+            x += Math.cos(angle) * step;
+            y += Math.sin(angle) * step;
 
-            x = Math.max(0, Math.min(window.innerWidth - 100, x));
-            y = Math.max(0, Math.min(window.innerHeight - 100, y));
+            // Bounce off edges
+            if (x <= 0 || x >= window.innerWidth - 100) angle = Math.PI - angle;
+            if (y <= 0 || y >= window.innerHeight - 100) angle = -angle;
 
             character.style.left = x + 'px';
             character.style.top = y + 'px';
