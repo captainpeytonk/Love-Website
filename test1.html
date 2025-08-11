@@ -525,8 +525,8 @@ element.addEventListener('click', function(e) {
                 if (character.dataset.paused !== 'true') {
                     x += step * direction;
                     y += step;
-                    if (x > window.innerWidth - 500 || x < 0) direction *= -10;
-                    if (y > window.innerHeight - 500) y = 0;
+                    if (x > window.innerWidth - 50 || x < 0) direction *= -1;
+                    if (y > window.innerHeight - 50) y = 0;
                     character.style.left = x + 'px';
                     character.style.top = y + 'px';
                 }
