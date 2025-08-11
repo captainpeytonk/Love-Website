@@ -509,24 +509,24 @@ element.addEventListener('click', function(e) {
     function startCharacterMovement(character) {
         const type = character.dataset.characterType;
         if (type === 'bunny') {
-            character.style.animation = 'hop 3s infinite';
+            character.style.animation = 'hop 0.5s infinite';
             moveRandomly(character, 3000, 4000);
         } else if (type === 'walker') {
-            character.style.animation = 'hop 0.5s infinite';
+            character.style.animation = 'hop 10s infinite';
             moveRandomly(character, 3000, 4000, 30);
         } else if (type === 'zigzag') {
             character.style.animation = 'none';
             let x = Math.random() * window.innerWidth;
             let y = Math.random() * window.innerHeight;
-            let direction = 10; // 1 = right-down, -1 = left-up
-            let step = 90;
+            let direction = 1; // 1 = right-down, -1 = left-up
+            let step = 5;
 
             function zigzagMove() {
                 if (character.dataset.paused !== 'true') {
                     x += step * direction;
                     y += step;
-                    if (x > window.innerWidth - 90 || x < 0) direction *= -1;
-                    if (y > window.innerHeight - 90) y = 0;
+                    if (x > window.innerWidth - 50 || x < 0) direction *= -1;
+                    if (y > window.innerHeight - 50) y = 0;
                     character.style.left = x + 'px';
                     character.style.top = y + 'px';
                 }
