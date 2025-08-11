@@ -212,6 +212,10 @@
             <button id="delete-btn" title="Delete all decorations and characters" style="font-size: 20px; cursor: pointer;">
     🗑️
 </button>
+                <button id="delete-selected-btn" title="Delete selected decoration or character" style="font-size: 20px; cursor: pointer; margin-left: 10px;">
+    🗑️ Delete Selected
+</button>
+
             </div>
         </div>
 
@@ -242,6 +246,7 @@
     <script>
         let selectedFunction = 'decoration';
         let draggedElement = null;
+        let selectedElement = null;
         let dragOffset = { x: 0, y: 0 };
         let isResizing = false;
         let isRotating = false;
@@ -365,22 +370,24 @@
             setTimeout(moveCharacter, 1000 + Math.random() * 2000);
         }
 
-        function toggleSelection(element) {
-            const handles = element.querySelectorAll('.resize-handle, .rotation-handle');
-            const isSelected = handles[0] && handles[0].style.display !== 'none';
-            
-            // Deselect all elements first
-            document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
-                handle.style.display = 'none';
-            });
-            
-            // Select this element if it wasn't selected
-            if (!isSelected) {
-                handles.forEach(handle => {
-                    handle.style.display = 'block';
-                });
-            }
-        }
+function toggleSelection(element) {
+    const handles = element.querySelectorAll('.resize-handle, .rotation-handle');
+    const isSelected = handles[0] && handles[0].style.display !== 'none';
+
+    // Deselect all elements first
+    document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
+        handle.style.display = 'none';
+    });
+
+    if (!isSelected) {
+        handles.forEach(handle => {
+            handle.style.display = 'block';
+        });
+        selectedElement = element;  // Store the selected element
+    } else {
+        selectedElement = null;     // No element selected
+    }
+}
 
         function startDragging(e) {
             if (e.target.classList.contains('resize-handle') || e.target.classList.contains('rotation-handle')) return;
@@ -424,13 +431,14 @@
         });
 
         // Click on background to deselect all
-        document.addEventListener('click', function(e) {
-            if (e.target === document.body) {
-                document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
-                    handle.style.display = 'none';
-                });
-            }
+document.addEventListener('click', function(e) {
+    if (e.target === document.body) {
+        document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
+            handle.style.display = 'none';
         });
+        selectedElement = null;  // clear selection when clicking outside
+    }
+});
     
 // Extend background support
 const bgMap = {
@@ -568,6 +576,17 @@ function moveRandomly(character, minDelay, maxDelay, step=200) {
 document.getElementById('delete-btn').addEventListener('click', () => {
     if (confirm('Are you sure you want to delete all decorations and characters?')) {
         deleteAllDecorationsAndCharacters();
+    }
+});
+
+        document.getElementById('delete-selected-btn').addEventListener('click', () => {
+    if (selectedElement) {
+        if (confirm('Are you sure you want to delete the selected element?')) {
+            selectedElement.remove();
+            selectedElement = null;
+        }
+    } else {
+        alert('No element selected to delete.');
     }
 });
 
