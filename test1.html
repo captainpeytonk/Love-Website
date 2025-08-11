@@ -206,9 +206,6 @@
         <div class="control-group">
             <h3>🌿 Choose Background</h3>
             <div class="background-selector">
-                <div class="bg-option bg-forest active" data-bg="forest" title="Enchanted Forest"></div>
-                <div class="bg-option bg-meadow" data-bg="meadow" title="Sunny Meadow"></div>
-                <div class="bg-option bg-mystical" data-bg="mystical" title="Mystical Garden"></div>
 <div class="bg-option" style="background-image: url('grass.png'); background-size: cover;" data-bg="grass" title="Grass"></div>
 <div class="bg-option" style="background-image: url('snow.png'); background-size: cover;" data-bg="snow" title="Snow"></div>
 <div class="bg-option" style="background-image: url('dirt.png'); background-size: cover;" data-bg="dirt" title="Dirt"></div>
@@ -493,7 +490,6 @@ let characterType = 'bunny';
 const charMenu = document.createElement('div');
 charMenu.innerHTML = `
     <button class="function-btn active" data-character="bunny">Bunny</button>
-    <button class="function-btn" data-character="snake">Snake</button>
     <button class="function-btn" data-character="walker">Walker</button>
 `;
 charMenu.style.display = 'flex';
@@ -514,20 +510,6 @@ function startCharacterMovement(character) {
     if (type === 'bunny') {
         character.style.animation = 'hop 3s infinite';
         moveRandomly(character, 3000, 4000);
-    } else if (type === 'snake') {
-        character.style.animation = 'none';
-        let x = Math.random() * window.innerWidth;
-        let y = Math.random() * window.innerHeight;
-        let t = 0;
-        function slither() {
-            x += 5;
-            y += Math.sin(t / 5) * 3;
-            character.style.left = (x % window.innerWidth) + 'px';
-            character.style.top = (y % window.innerHeight) + 'px';
-            t++;
-            requestAnimationFrame(slither);
-        }
-        slither();
     } else if (type === 'walker') {
         character.style.animation = 'hop 0.5s infinite';
         moveRandomly(character, 3000, 4000, 30);
