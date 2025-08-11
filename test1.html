@@ -485,36 +485,56 @@ element.addEventListener('click', function(e) {
 });
 }
 
-let characterType = 'bunny';
+    let characterType = 'bunny';
 
-const charMenu = document.createElement('div');
-charMenu.innerHTML = `
-    <button class="function-btn active" data-character="bunny">Bunny</button>
-    <button class="function-btn" data-character="walker">Walker</button>
-`;
-charMenu.style.display = 'flex';
-charMenu.style.gap = '10px';
-charMenu.style.marginTop = '10px';
-document.querySelector('.control-group:last-child').appendChild(charMenu);
+    const charMenu = document.createElement('div');
+    charMenu.innerHTML = `
+        <button class="function-btn active" data-character="bunny">Bunny</button>
+        <button class="function-btn" data-character="walker">Walker</button>
+        <button class="function-btn" data-character="zigzag">Zig-Zag</button>
+    `;
+    charMenu.style.display = 'flex';
+    charMenu.style.gap = '10px';
+    charMenu.style.marginTop = '10px';
+    document.querySelector('.control-group:last-child').appendChild(charMenu);
 
-charMenu.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', function () {
-        charMenu.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        characterType = this.dataset.character;
+    charMenu.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', function () {
+            charMenu.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            characterType = this.dataset.character;
+        });
     });
-});
 
-function startCharacterMovement(character) {
-    const type = character.dataset.characterType;
-    if (type === 'bunny') {
-        character.style.animation = 'hop 3s infinite';
-        moveRandomly(character, 3000, 4000);
-    } else if (type === 'walker') {
-        character.style.animation = 'hop 0.5s infinite';
-        moveRandomly(character, 3000, 4000, 30);
+    function startCharacterMovement(character) {
+        const type = character.dataset.characterType;
+        if (type === 'bunny') {
+            character.style.animation = 'hop 3s infinite';
+            moveRandomly(character, 3000, 4000);
+        } else if (type === 'walker') {
+            character.style.animation = 'hop 0.5s infinite';
+            moveRandomly(character, 3000, 4000, 30);
+        } else if (type === 'zigzag') {
+            character.style.animation = 'none';
+            let x = Math.random() * window.innerWidth;
+            let y = Math.random() * window.innerHeight;
+            let direction = 1; // 1 = right-down, -1 = left-up
+            let step = 5;
+
+            function zigzagMove() {
+                if (character.dataset.paused !== 'true') {
+                    x += step * direction;
+                    y += step;
+                    if (x > window.innerWidth - 50 || x < 0) direction *= -1;
+                    if (y > window.innerHeight - 50) y = 0;
+                    character.style.left = x + 'px';
+                    character.style.top = y + 'px';
+                }
+                requestAnimationFrame(zigzagMove);
+            }
+            zigzagMove();
+        }
     }
-}
 
 function moveRandomly(character, minDelay, maxDelay, step=200) {
     function move() {
