@@ -209,13 +209,12 @@
 <div class="bg-option" style="background-image: url('grass.png'); background-size: cover;" data-bg="grass" title="Grass"></div>
 <div class="bg-option" style="background-image: url('snow.png'); background-size: cover;" data-bg="snow" title="Snow"></div>
 <div class="bg-option" style="background-image: url('dirt.png'); background-size: cover;" data-bg="dirt" title="Dirt"></div>
-
-            </div>
-        </div>
-
             <button id="delete-btn" title="Delete all decorations and characters" style="font-size: 20px; cursor: pointer;">
     🗑️
 </button>
+            </div>
+        </div>
+
         
         <div class="control-group">
             <h3>🖼️ Upload Image</h3>
@@ -570,7 +569,7 @@ document.getElementById('delete-btn').addEventListener('click', () => {
     if (confirm('Are you sure you want to delete all decorations and characters?')) {
         deleteAllDecorationsAndCharacters();
     }
-
+});
 
 
 // Toggle UI
