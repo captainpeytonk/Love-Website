@@ -1,389 +1,560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Bucket List</title>
-  <style>
-    /* Existing styles retained */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Garden</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
-      font-family: 'Georgia', serif;
-      overflow-x: hidden;
-    }
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
 
-    .initial-view {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      transition: all 1.5s ease;
-    }
+        .background-forest {
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c59 50%, #6b8e23 100%);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+        }
 
-    .initial-view.hidden {
-      transform: translateY(-100vh) rotate(-10deg) !important;
-      opacity: 0 !important;
-    }
+        .background-meadow {
+            background: linear-gradient(135deg, #87ceeb 0%, #98fb98 30%, #90ee90 70%, #228b22 100%);
+            background-image:
+                radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        }
 
-    .bucket-container {
-      position: relative;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
+        .background-mystical {
+            background: linear-gradient(135deg, #2c1810 0%, #4a148c 30%, #6a1b9a 70%, #8e24aa 100%);
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(186, 104, 200, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(156, 39, 176, 0.2) 0%, transparent 50%);
+        }
 
-    .bucket-container:hover {
-      transform: scale(1.05);
-    }
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-    .bucket {
-      font-size: 150px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
-      transition: all 0.5s ease;
-    }
+        .control-group {
+            margin-bottom: 15px;
+        }
 
-    .click-prompt {
-      position: absolute;
-      top: -50px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      animation: bounce 2s infinite;
-      white-space: nowrap;
-    }
+        .control-group h3 {
+            color: #2d5016;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
 
-    @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
-      40% { transform: translateX(-50%) translateY(-10px); }
-      60% { transform: translateX(-50%) translateY(-5px); }
-    }
+        .background-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
 
-    .list-view {
-      position: relative;
-      width: 100%;
-      min-height: 100vh;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 1s ease;
-    }
+        .bg-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
 
-    .list-view.active {
-      opacity: 1;
-      pointer-events: all;
-    }
+        .bg-option:hover {
+            transform: scale(1.1);
+            border-color: #4a7c59;
+        }
 
-.upside-down-bucket {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%) rotate(180deg);
-  font-size: 80px;
-  filter: drop-shadow(0 -10px 20px rgba(0,0,0,0.3));
-  z-index: 999; /* Ensure it stays above everything */
-  animation: bucketDrop 1s ease-out;
-}
+        .bg-option.active {
+            border-color: #2d5016;
+            transform: scale(1.1);
+        }
 
-    @keyframes bucketDrop {
-      0% { transform: translateX(-50%) rotate(0deg) translateY(-100px); opacity: 0; }
-      50% { transform: translateX(-50%) rotate(90deg) translateY(0px); opacity: 0.7; }
-      100% { transform: translateX(-50%) rotate(180deg) translateY(0px); opacity: 1; }
-    }
+        .bg-forest { background: linear-gradient(135deg, #2d5016, #4a7c59, #6b8e23); }
+        .bg-meadow { background: linear-gradient(135deg, #87ceeb, #98fb98, #90ee90, #228b22); }
+        .bg-mystical { background: linear-gradient(135deg, #2c1810, #4a148c, #6a1b9a, #8e24aa); }
 
-    .parchment-scroll {
-      position: relative;
-      top: 140px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 800px;
-      min-height: calc(100vh - 160px);
-      background: linear-gradient(180deg, #f9f1d4 0%, #f4e4bc 25%, #e8d5a3 75%, #dcc48a 100%);
-      border: none;
-      box-shadow: 0 0 50px rgba(139, 69, 19, 0.4), inset 0 0 20px rgba(139, 69, 19, 0.1);
-      padding: 60px 40px 40px 40px;
-    }
+        input[type="file"] {
+            margin: 5px 0;
+            padding: 8px;
+            border: 2px dashed #4a7c59;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+        }
 
-    
-    .scroll-content { position: relative; z-index: 1; }
+        .function-selector {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
 
-    h1 {
-      text-align: center;
-      color: #654321;
-      font-size: 3em;
-      margin-bottom: 40px;
-    }
+        .function-btn {
+            padding: 8px 12px;
+            background: #4a7c59;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s ease;
+        }
 
-    .add-item-form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 40px;
-      flex-wrap: wrap;
-    }
+        .function-btn:hover {
+            background: #2d5016;
+        }
 
-    .add-item-input, .add-btn {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: 2px solid #8b4513;
-    }
+        .function-btn.active {
+            background: #2d5016;
+        }
 
-    .bucket-list {
-      list-style: none;
-      padding: 0;
-    }
+        .garden-element {
+            position: absolute;
+            cursor: move;
+            transition: transform 0.1s ease;
+            user-select: none;
+        }
 
-.bucket-item {
-  background: rgba(255,255,255,0.6);
-  border: 2px solid #8b4513;
-  border-radius: 12px;
-  margin-bottom: 15px;
-  padding: 20px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-}
+        .garden-element:hover {
+            filter: brightness(1.1);
+        }
 
-    .bucket-item.completed {
-      background: rgba(144,238,144,0.6);
-      text-decoration: line-through;
-    }
+        .garden-element.dragging {
+            z-index: 999;
+            transform: scale(1.05);
+        }
 
-    .extra-fields {
-      margin-top: 10px;
-    }
+        .garden-element img {
+            max-width: 100%;
+            max-height: 100%;
+            pointer-events: none;
+        }
 
-    .extra-fields img {
-      max-width: 100px;
-      margin-top: 10px;
-      border-radius: 8px;
-    }
+        .resize-handle {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 15px;
+            height: 15px;
+            background: #4a7c59;
+            border-radius: 50%;
+            cursor: nw-resize;
+            border: 2px solid white;
+        }
 
-.quest-title {
-  font-size: 1.4em;
-  font-weight: bold;
-  color: #4b2e14;
-  margin-bottom: 10px;
-  text-align: left;
-}
+        .rotation-handle {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 15px;
+            height: 15px;
+            background: #6b8e23;
+            border-radius: 50%;
+            cursor: grab;
+            border: 2px solid white;
+        }
 
-.completion-msg {
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #2f4f4f;
-  line-height: 1.4em;
-  white-space: pre-line;
-}
-    
-  </style>
+        .character {
+            transition: all 2s ease-in-out;
+            animation: hop 3s infinite;
+        }
+
+        @keyframes hop {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-20px) scale(1.05); }
+        }
+
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+            font-size: 12px;
+            color: #2d5016;
+        }
+    </style>
 </head>
-<body>
-  <div class="initial-view" id="initialView">
-    <div class="bucket-container" id="bucketContainer">
-      <div class="click-prompt">Click the bucket to unfurl your scroll!</div>
-      <div class="bucket">🪣</div>
+<body class="background-forest">
+<button id="toggle-ui" style="position: fixed; top: 20px; right: 20px; z-index: 1001; background: #2d5016; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer;">⇅</button>
+
+    <div class="controls">
+        <div class="control-group">
+            <h3>🌿 Choose Background</h3>
+            <div class="background-selector">
+                <div class="bg-option bg-forest active" data-bg="forest" title="Enchanted Forest"></div>
+                <div class="bg-option bg-meadow" data-bg="meadow" title="Sunny Meadow"></div>
+                <div class="bg-option bg-mystical" data-bg="mystical" title="Mystical Garden"></div>
+<div class="bg-option" style="background-image: url('grass.png'); background-size: cover;" data-bg="grass" title="Grass"></div>
+<div class="bg-option" style="background-image: url('snow.png'); background-size: cover;" data-bg="snow" title="Snow"></div>
+<div class="bg-option" style="background-image: url('dirt.png'); background-size: cover;" data-bg="dirt" title="Dirt"></div>
+
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>🖼️ Upload Image</h3>
+            <input type="file" id="imageUpload" accept="image/*" />
+        </div>
+
+        <div class="control-group">
+            <h3>⚙️ Function</h3>
+            <div class="function-selector">
+                <button class="function-btn active" data-function="decoration">Decoration</button>
+                <button class="function-btn" data-function="character">Character</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="list-view" id="listView">
-    <div class="upside-down-bucket">🪣</div>
-    <div class="parchment-scroll">
-      <div class="scroll-content">
-        <h1>My Bucket List</h1>
-        <form class="add-item-form" id="addItemForm">
-          <input type="text" class="add-item-input" id="itemInput" placeholder="What quest shall you undertake?" required>
-          <button type="submit" class="add-btn">Add Quest</button>
-        </form>
-        <ul class="bucket-list" id="bucketList"></ul>
-      </div>
+    <div class="instructions">
+        <strong>🌱 Garden Instructions:</strong><br>
+        • Choose a background theme<br>
+        • Upload transparent PNG images<br>
+        • Decoration: Drag to move, resize & rotate<br>
+        • Character: Hops around automatically<br>
+        • Click elements to select/deselect
     </div>
-  </div>
 
-  <script>
-    let bucketItems = [];
-    let nextId = 1;
+    <script>
+        let selectedFunction = 'decoration';
+        let draggedElement = null;
+        let dragOffset = { x: 0, y: 0 };
+        let isResizing = false;
+        let isRotating = false;
+        let characters = [];
 
-    const initialView = document.getElementById('initialView');
-    const listView = document.getElementById('listView');
-    const bucketContainer = document.getElementById('bucketContainer');
-    const addItemForm = document.getElementById('addItemForm');
-    const itemInput = document.getElementById('itemInput');
-    const bucketList = document.getElementById('bucketList');
+        // Background selection
+        document.querySelectorAll('.bg-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.bg-option').forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                
+                const bgType = this.dataset.bg;
+                document.body.className = `background-${bgType}`;
+            });
+        });
 
-    bucketContainer.addEventListener('click', () => {
-      initialView.style.transform = 'translateY(-100vh) rotate(-10deg)';
-      initialView.style.opacity = '0';
-      setTimeout(() => {
-        initialView.style.display = 'none';
-        listView.classList.add('active');
-      }, 800);
+        // Function selection
+        document.querySelectorAll('.function-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.function-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedFunction = this.dataset.function;
+            });
+        });
+
+        // Image upload
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    createGardenElement(event.target.result, selectedFunction);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function createGardenElement(imageSrc, functionType) {
+            const element = document.createElement('div');
+            element.className = `garden-element ${functionType}`;
+            
+            const img = document.createElement('img');
+            img.src = imageSrc;
+            img.style.width = '80px';
+            img.style.height = 'auto';
+            
+            element.appendChild(img);
+            
+            // Position randomly
+            const x = Math.random() * (window.innerWidth - 150);
+            const y = Math.random() * (window.innerHeight - 150);
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+
+            if (functionType === 'decoration') {
+                setupDecorationElement(element);
+            } else if (functionType === 'character') {
+                setupCharacterElement(element);
+            }
+            
+            document.body.appendChild(element);
+        }
+
+        function setupDecorationElement(element) {
+            // Add resize handle
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            element.appendChild(resizeHandle);
+
+            // Add rotation handle
+            const rotationHandle = document.createElement('div');
+            rotationHandle.className = 'rotation-handle';
+            element.appendChild(rotationHandle);
+
+            // Hide handles initially
+            resizeHandle.style.display = 'none';
+            rotationHandle.style.display = 'none';
+
+            // Click to select/deselect
+            element.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSelection(element);
+            });
+
+            // Drag functionality
+            element.addEventListener('mousedown', startDragging);
+
+            // Resize functionality
+            resizeHandle.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+                isResizing = true;
+                draggedElement = element;
+            });
+
+            // Rotation functionality
+            rotationHandle.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+                isRotating = true;
+                draggedElement = element;
+            });
+        }
+
+        function setupCharacterElement(element) {
+            characters.push(element);
+            startCharacterMovement(element);
+        }
+
+        function startCharacterMovement(character) {
+            function moveCharacter() {
+                const x = Math.random() * (window.innerWidth - 100);
+                const y = Math.random() * (window.innerHeight - 100);
+                
+                character.style.left = x + 'px';
+                character.style.top = y + 'px';
+                
+                // Schedule next movement
+                setTimeout(moveCharacter, 3000 + Math.random() * 4000);
+            }
+            
+            // Start movement after a random delay
+            setTimeout(moveCharacter, 1000 + Math.random() * 2000);
+        }
+
+        function toggleSelection(element) {
+            const handles = element.querySelectorAll('.resize-handle, .rotation-handle');
+            const isSelected = handles[0] && handles[0].style.display !== 'none';
+            
+            // Deselect all elements first
+            document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
+                handle.style.display = 'none';
+            });
+            
+            // Select this element if it wasn't selected
+            if (!isSelected) {
+                handles.forEach(handle => {
+                    handle.style.display = 'block';
+                });
+            }
+        }
+
+        function startDragging(e) {
+            if (e.target.classList.contains('resize-handle') || e.target.classList.contains('rotation-handle')) return;
+            
+            draggedElement = this;
+            this.classList.add('dragging');
+            
+            const rect = this.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+        }
+
+        // Global mouse events
+        document.addEventListener('mousemove', function(e) {
+            if (draggedElement) {
+                if (isResizing) {
+                    const img = draggedElement.querySelector('img');
+                    const rect = draggedElement.getBoundingClientRect();
+                    const newSize = Math.max(20, e.clientX - rect.left);
+                    img.style.width = newSize + 'px';
+                } else if (isRotating) {
+                    const rect = draggedElement.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
+                    draggedElement.style.transform = `rotate(${angle}deg)`;
+                } else {
+                    draggedElement.style.left = (e.clientX - dragOffset.x) + 'px';
+                    draggedElement.style.top = (e.clientY - dragOffset.y) + 'px';
+                }
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
+                draggedElement = null;
+                isResizing = false;
+                isRotating = false;
+            }
+        });
+
+        // Click on background to deselect all
+        document.addEventListener('click', function(e) {
+            if (e.target === document.body) {
+                document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
+                    handle.style.display = 'none';
+                });
+            }
+        });
+    
+// Extend background support
+const bgMap = {
+    'forest': '',
+    'meadow': '',
+    'mystical': '',
+    'grass': 'url("grass.png")',
+    'snow': 'url("snow.png")',
+    'dirt': 'url("dirt.png")'
+};
+
+document.querySelectorAll('.bg-option').forEach(option => {
+    option.addEventListener('click', function () {
+        document.querySelectorAll('.bg-option').forEach(opt => opt.classList.remove('active'));
+        this.classList.add('active');
+        const bg = this.dataset.bg;
+        if (bgMap[bg]) {
+            document.body.style.backgroundImage = bgMap[bg];
+            document.body.style.backgroundSize = 'cover';
+        } else {
+            document.body.className = `background-${bg}`;
+            document.body.style.backgroundImage = '';
+        }
     });
+});
 
-    addItemForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const text = itemInput.value.trim();
-      if (text) {
-        addItem(text);
-        itemInput.value = '';
-      }
+// Add character types: bunny, snake, walker
+function setupCharacterElement(element) {
+    const type = characterType || 'bunny';
+    element.dataset.characterType = type;
+    characters.push(element);
+    startCharacterMovement(element);
+    // Override character click to toggle pause and show resize handle
+element.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const isPaused = element.dataset.paused === 'true';
+    element.dataset.paused = (!isPaused).toString();
+
+    if (!isPaused) {
+        element.classList.add('paused');
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className = 'resize-handle';
+        element.appendChild(resizeHandle);
+        resizeHandle.style.display = 'block';
+        resizeHandle.addEventListener('mousedown', function(e) {
+            e.stopPropagation();
+            isResizing = true;
+            draggedElement = element;
+        });
+    } else {
+        element.classList.remove('paused');
+        const handle = element.querySelector('.resize-handle');
+        if (handle) handle.remove();
+    }
+});
+}
+
+let characterType = 'bunny';
+
+const charMenu = document.createElement('div');
+charMenu.innerHTML = `
+    <button class="function-btn active" data-character="bunny">Bunny</button>
+    <button class="function-btn" data-character="snake">Snake</button>
+    <button class="function-btn" data-character="walker">Walker</button>
+`;
+charMenu.style.display = 'flex';
+charMenu.style.gap = '10px';
+charMenu.style.marginTop = '10px';
+document.querySelector('.control-group:last-child').appendChild(charMenu);
+
+charMenu.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', function () {
+        charMenu.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        characterType = this.dataset.character;
     });
+});
 
-    function addItem(text) {
-      const item = {
-        id: nextId++,
-        text: text,
-        completed: false,
-        date: '',
-        photo: ''
-      };
-      bucketItems.push(item);
-      renderList();
+function startCharacterMovement(character) {
+    const type = character.dataset.characterType;
+    if (type === 'bunny') {
+        character.style.animation = 'hop 3s infinite';
+        moveRandomly(character, 3000, 4000);
+    } else if (type === 'snake') {
+        character.style.animation = 'none';
+        let x = Math.random() * window.innerWidth;
+        let y = Math.random() * window.innerHeight;
+        let t = 0;
+        function slither() {
+            x += 5;
+            y += Math.sin(t / 5) * 3;
+            character.style.left = (x % window.innerWidth) + 'px';
+            character.style.top = (y % window.innerHeight) + 'px';
+            t++;
+            requestAnimationFrame(slither);
+        }
+        slither();
+    } else if (type === 'walker') {
+        character.style.animation = 'hop 0.5s infinite';
+        moveRandomly(character, 3000, 4000, 30);
     }
-
-    function toggleItem(id) {
-      const item = bucketItems.find(i => i.id === id);
-      if (item.image) {
-    // Save image to loveGalleryBucket array in localStorage
-    const existing = JSON.parse(localStorage.getItem("loveGalleryBucket") || "[]");
-    existing.push(item.image);
-    localStorage.setItem("loveGalleryBucket", JSON.stringify(existing));
 }
-      ///if (item) {
-        ///item.completed = !item.completed;
-        ///renderList();
-      ///}
-    ///}
 
-    function handleExtraFields(id, field, value) {
-      const item = bucketItems.find(i => i.id === id);
-      if (item) {
-        item[field] = value;
-        renderList();
-      }
+function moveRandomly(character, minDelay, maxDelay, step=200) {
+    function move() {
+        const x = Math.random() * (window.innerWidth - step);
+        const y = Math.random() * (window.innerHeight - step);
+        if (character.dataset.paused !== 'true') {
+            character.style.left = x + 'px';
+            character.style.top = y + 'px';
+        }
+        setTimeout(move, minDelay + Math.random() * (maxDelay - minDelay));
     }
-
-function renderList() {
-  bucketList.innerHTML = '';
-  const gifOptions = [
-    'gif1.gif',
-    'gif2.gif',
-    'gif3.gif',
-    'gif4.gif',
-    'gif5.gif'
-  ];
-
-  bucketItems.forEach(item => {
-    const li = document.createElement('li');
-    li.className = 'bucket-item';
-
-    const left = document.createElement('div');
-    left.style.width = '50%';
-
-    const right = document.createElement('div');
-    right.style.width = '50%';
-
-    // Quest title on top-left
-    const title = document.createElement('div');
-    title.className = 'quest-title';
-    title.textContent = item.text;
-    left.appendChild(title);
-
-    // Toggle checkbox (hidden)
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = item.completed;
-    checkbox.onchange = () => toggleItem(item.id);
-    checkbox.style.marginTop = '10px';
-    left.appendChild(checkbox);
-
-    if (item.completed) {
-      // Set date if not already set
-      if (!item.date) {
-        const today = new Date().toISOString().split('T')[0];
-        item.date = today;
-      }
-
-      const randomGif = gifOptions[Math.floor(Math.random() * gifOptions.length)];
-      const msg = document.createElement('div');
-      msg.className = 'completion-msg';
-
-      msg.innerHTML = `
-        <img src="${randomGif}" alt="gif" style="height:80px;"><br>
-        you completed <em>${item.text}</em><br>
-        on <strong>${item.date}</strong>.
-      `;
-      left.appendChild(msg);
-
-      const dateInput = document.createElement('input');
-      dateInput.type = 'date';
-      dateInput.value = item.date;
-      dateInput.onchange = (e) => handleExtraFields(item.id, 'date', e.target.value);
-      left.appendChild(document.createElement('br'));
-      left.appendChild(dateInput);
-
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.accept = 'image/*';
-      fileInput.onchange = (e) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          handleExtraFields(item.id, 'photo', event.target.result);
-        };
-        reader.readAsDataURL(e.target.files[0]);
-      };
-
-      if (!item.photo) {
-        left.appendChild(document.createElement('br'));
-        left.appendChild(fileInput);
-      }
-
-      if (item.photo) {
-        const img = document.createElement('img');
-        img.src = item.photo;
-        img.style.width = '100%';
-        img.style.maxWidth = '100%';
-        img.style.borderRadius = '10px';
-        right.appendChild(img);
-
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Remove Photo';
-        removeBtn.onclick = () => removePhoto(item.id);
-        left.appendChild(document.createElement('br'));
-        left.appendChild(removeBtn);
-      }
-    }
-
-    li.appendChild(left);
-    li.appendChild(right);
-    bucketList.appendChild(li);
-  });
+    setTimeout(move, minDelay);
 }
-    window.toggleItem = toggleItem;
-    window.handleExtraFields = handleExtraFields;
-  
-    function removePhoto(id) {
-      const item = bucketItems.find(i => i.id === id);
-      if (item) {
-        item.photo = "";
-        renderList();
-      }
-    }
-    window.removePhoto = removePhoto;
+
+// Toggle UI
+document.getElementById('toggle-ui').addEventListener('click', () => {
+    const controls = document.querySelector('.controls');
+    const instructions = document.querySelector('.instructions');
+    const isVisible = controls.style.display !== 'none';
+    controls.style.display = isVisible ? 'none' : 'block';
+    instructions.style.display = isVisible ? 'none' : 'block';
+});
 
 </script>
 </body>
