@@ -514,26 +514,53 @@ element.addEventListener('click', function(e) {
         } else if (type === 'walker') {
             character.style.animation = 'hop 0.5s infinite';
             moveRandomly(character, 3000, 4000, 30);
-        } else if (type === 'zigzag') {
-            character.style.animation = 'none';
-            let x = Math.random() * window.innerWidth;
-            let y = Math.random() * window.innerHeight;
-            let direction = 1; // 1 = right-down, -1 = left-up
-            let step = 5;
+else if (type === 'zigzag') {
+    character.style.animation = 'none';
+    // M-shaped movement: 5 waypoints across the screen that form an 'M'
+    const amplitude = Math.min(180, Math.round(window.innerHeight * 0.18)); // vertical amplitude
+    const margin = 80;
+    const left = margin;
+    const right = Math.max(margin + 200, window.innerWidth - margin);
+    const baseY = Math.min(window.innerHeight - margin, Math.round(window.innerHeight * 0.6));
 
-            function zigzagMove() {
-                if (character.dataset.paused !== 'true') {
-                    x += step * direction;
-                    y += step;
-                    if (x > window.innerWidth - 50 || x < 0) direction *= -1;
-                    if (y > window.innerHeight - 50) y = 0;
-                    character.style.left = x + 'px';
-                    character.style.top = y + 'px';
-                }
-                requestAnimationFrame(zigzagMove);
+    const waypoints = [
+        { x: left, y: baseY + amplitude },
+        { x: left + (right - left) * 0.25, y: baseY - amplitude },
+        { x: left + (right - left) * 0.5, y: baseY + amplitude },
+        { x: left + (right - left) * 0.75, y: baseY - amplitude },
+        { x: right, y: baseY + amplitude }
+    ];
+
+    const segDuration = 700; // speed of each segment in ms
+
+    let stop = false;
+    character._movementStop = () => { stop = true; };
+
+    // start at first waypoint
+    character.style.left = waypoints[0].x + 'px';
+    character.style.top = waypoints[0].y + 'px';
+
+    async function runLoop() {
+        while (!stop) {
+            for (let i = 0; i < waypoints.length; i++) {
+                const from = {
+                    x: parseFloat(character.style.left) || waypoints[0].x,
+                    y: parseFloat(character.style.top) || waypoints[0].y
+                };
+                const to = waypoints[i];
+                await animateTo(character, from, to, segDuration, () => character.dataset.paused === 'true' || stop);
+                if (stop) break;
             }
-            zigzagMove();
+            await sleep(400);
+            if (stop) break;
+            const cur = { x: parseFloat(character.style.left), y: parseFloat(character.style.top) };
+            await animateTo(character, cur, { x: waypoints[0].x - 40, y: waypoints[0].y }, 250, () => false);
+            await animateTo(character, { x: waypoints[0].x - 40, y: waypoints[0].y }, waypoints[0], 300, () => false);
         }
+    }
+
+    runLoop();
+}
     }
 
 function moveRandomly(character, minDelay, maxDelay, step=200) {
