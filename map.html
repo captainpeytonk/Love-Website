@@ -302,6 +302,28 @@
             20%, 80% { opacity: 1; }
         }
 
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
         .leaflet-container {
             border-radius: 0;
         }
@@ -390,7 +412,7 @@
         let uploadMode = false;
 
         // Initialize map
-        function initMap() {
+        async function initMap() {
             // Create the map
             map = L.map('map', {
                 zoomControl: true,
@@ -407,7 +429,7 @@
             map.on('click', onMapClick);
 
             // Load existing media data
-            loadMediaData();
+            await loadMediaData();
         }
 
         function onMapClick(e) {
@@ -501,7 +523,7 @@
         }
 
         // Handle form submission
-        document.getElementById('uploadForm').addEventListener('submit', (e) => {
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             if (!selectedLocation) {
@@ -525,29 +547,117 @@
                 return;
             }
 
-            // Create media data object
-            const reader = new FileReader();
-            reader.onload = (event) => {
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = '⏳ Uploading...';
+            submitBtn.disabled = true;
+
+            try {
+                // Convert file to base64
+                const base64File = await fileToBase64(file);
+                
+                // Generate unique filename
+                const timestamp = Date.now();
+                const fileExtension = file.name.split('.').pop();
+                const fileName = `media/${timestamp}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
+
+                // Upload file to Vercel Blob
+                const uploadResponse = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        file: base64File,
+                        fileName: fileName,
+                        fileType: file.type
+                    })
+                });
+
+                if (!uploadResponse.ok) {
+                    throw new Error('Failed to upload file');
+                }
+
+                const { url: mediaUrl } = await uploadResponse.json();
+
+                // Create media data object
                 const mediaItem = {
                     id: Date.now(),
                     title: title,
                     description: description,
                     location: selectedLocation,
                     locationName: locationName,
-                    mediaUrl: event.target.result,
+                    mediaUrl: mediaUrl,
                     mediaType: file.type.startsWith('image/') ? 'image' : 'video',
                     category: category,
-                    timestamp: new Date().toLocaleDateString()
+                    timestamp: new Date().toLocaleDateString(),
+                    fileName: fileName
                 };
 
                 mediaData.push(mediaItem);
-                saveMediaData();
+                await saveMediaData();
                 addMarkerToMap(mediaItem);
                 closeUploadModal();
                 toggleUploadMode(); // Exit upload mode
-            };
-            reader.readAsDataURL(file);
+
+                // Show success message
+                showNotification('✅ Media uploaded successfully!', 'success');
+            } catch (error) {
+                console.error('Upload error:', error);
+                showNotification('❌ Failed to upload media. Please try again.', 'error');
+            } finally {
+                // Reset button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
         });
+
+        // Helper function to convert file to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 600;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                max-width: 300px;
+                word-wrap: break-word;
+            `;
+            
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(45deg, #2ed573, #1e90ff)';
+            } else if (type === 'error') {
+                notification.style.background = 'linear-gradient(45deg, #ff4757, #ff3742)';
+            } else {
+                notification.style.background = 'linear-gradient(45deg, #667eea, #764ba2)';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
 
         function addMarkerToMap(mediaItem) {
             // Create custom marker HTML based on category
@@ -590,14 +700,47 @@
             markers.push(marker);
         }
 
-        function loadMediaData() {
-            // No preloaded sample data - start with empty array
-            mediaData = [];
+        async function loadMediaData() {
+            try {
+                const response = await fetch('/api/get-media');
+                if (response.ok) {
+                    mediaData = await response.json();
+                    // Add markers for all loaded media
+                    mediaData.forEach(mediaItem => {
+                        addMarkerToMap(mediaItem);
+                    });
+                    console.log('Media data loaded successfully:', mediaData.length, 'items');
+                } else {
+                    console.error('Failed to load media data');
+                    mediaData = [];
+                }
+            } catch (error) {
+                console.error('Error loading media data:', error);
+                mediaData = [];
+            }
         }
 
-        function saveMediaData() {
-            // In a real app, this would save to a database
-            console.log('Saving media data:', mediaData);
+        async function saveMediaData() {
+            try {
+                const response = await fetch('/api/save-media', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(mediaData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Media data saved successfully:', result);
+                } else {
+                    console.error('Failed to save media data');
+                    showNotification('❌ Failed to save media data', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving media data:', error);
+                showNotification('❌ Error saving media data', 'error');
+            }
         }
 
         // File input label update
