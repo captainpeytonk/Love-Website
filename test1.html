@@ -322,11 +322,33 @@
             resizeHandle.style.display = 'none';
             rotationHandle.style.display = 'none';
 
-            // Click to select/deselect
-            element.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleSelection(element);
-            });
+element.addEventListener('click', function(e) {
+    e.stopPropagation();
+
+    // Toggle selection UI for this element
+    toggleSelection(element);
+
+    // Existing pause/unpause toggle
+    const isPaused = element.dataset.paused === 'true';
+    element.dataset.paused = (!isPaused).toString();
+
+    if (!isPaused) {
+        element.classList.add('paused');
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className = 'resize-handle';
+        element.appendChild(resizeHandle);
+        resizeHandle.style.display = 'block';
+        resizeHandle.addEventListener('mousedown', function(e) {
+            e.stopPropagation();
+            isResizing = true;
+            draggedElement = element;
+        });
+    } else {
+        element.classList.remove('paused');
+        const handle = element.querySelector('.resize-handle');
+        if (handle) handle.remove();
+    }
+});
 
             // Drag functionality
             element.addEventListener('mousedown', startDragging);
