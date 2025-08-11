@@ -518,8 +518,8 @@ element.addEventListener('click', function(e) {
             character.style.animation = 'none';
             let x = Math.random() * window.innerWidth;
             let y = Math.random() * window.innerHeight;
-            let direction = 100; // 1 = right-down, -1 = left-up
-            let step = 1000;
+            let direction = 10; // 1 = right-down, -1 = left-up
+            let step = 100;
 
             function zigzagMove() {
                 if (character.dataset.paused !== 'true') {
