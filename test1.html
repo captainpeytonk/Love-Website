@@ -631,11 +631,6 @@ function moveRandomly(character, minDelay, maxDelay, step=200) {
 
         // Add this inside your <script> tag, preferably near the bottom or after the delete function
 
-document.getElementById('delete-btn').addEventListener('click', () => {
-    if (confirm('Are you sure you want to delete all decorations and characters?')) {
-        deleteAllDecorationsAndCharacters();
-    }
-});
 
 document.getElementById('delete-selected-btn').addEventListener('click', () => {
     if (selectedElement) {
