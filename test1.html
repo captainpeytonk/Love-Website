@@ -209,10 +209,9 @@
 <div class="bg-option" style="background-image: url('grass.png'); background-size: cover;" data-bg="grass" title="Grass"></div>
 <div class="bg-option" style="background-image: url('snow.png'); background-size: cover;" data-bg="snow" title="Snow"></div>
 <div class="bg-option" style="background-image: url('dirt.png'); background-size: cover;" data-bg="dirt" title="Dirt"></div>
-                <button id="delete-selected-btn" title="Delete selected decoration or character" style="font-size: 20px; cursor: pointer; margin-left: 10px;">
-    🗑️ Delete Selected
+            <button id="delete-btn" title="Delete all decorations and characters" style="font-size: 20px; cursor: pointer;">
+    🗑️
 </button>
-
             </div>
         </div>
 
@@ -243,7 +242,6 @@
     <script>
         let selectedFunction = 'decoration';
         let draggedElement = null;
-        let selectedElement = null;
         let dragOffset = { x: 0, y: 0 };
         let isResizing = false;
         let isRotating = false;
@@ -307,87 +305,26 @@
             document.body.appendChild(element);
         }
 
-function setupDecorationElement(element) {
-    // Add resize handle
-    const resizeHandle = document.createElement('div');
-    resizeHandle.className = 'resize-handle';
-    element.appendChild(resizeHandle);
+        function setupDecorationElement(element) {
+            // Add resize handle
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            element.appendChild(resizeHandle);
 
-    // Add rotation handle
-    const rotationHandle = document.createElement('div');
-    rotationHandle.className = 'rotation-handle';
-    element.appendChild(rotationHandle);
+            // Add rotation handle
+            const rotationHandle = document.createElement('div');
+            rotationHandle.className = 'rotation-handle';
+            element.appendChild(rotationHandle);
 
-    // Hide handles initially
-    resizeHandle.style.display = 'none';
-    rotationHandle.style.display = 'none';
+            // Hide handles initially
+            resizeHandle.style.display = 'none';
+            rotationHandle.style.display = 'none';
 
-    // Selection toggling on click
-    element.addEventListener('click', function(e) {
-        e.stopPropagation(); // Prevent deselect when clicking element
-
-        const isSelected = resizeHandle.style.display === 'block';
-
-        // Hide all handles on all elements
-        document.querySelectorAll('.resize-handle, .rotation-handle').forEach(handle => {
-            handle.style.display = 'none';
-        });
-
-        if (!isSelected) {
-            // Show handles on this element
-            resizeHandle.style.display = 'block';
-            rotationHandle.style.display = 'block';
-            selectedElement = element;
-        } else {
-            selectedElement = null;
-        }
-    });
-
-    // Drag functionality
-    element.addEventListener('mousedown', startDragging);
-
-    // Resize functionality
-    resizeHandle.addEventListener('mousedown', function(e) {
-        e.stopPropagation();
-        isResizing = true;
-        draggedElement = element;
-    });
-
-    // Rotation functionality
-    rotationHandle.addEventListener('mousedown', function(e) {
-        e.stopPropagation();
-        isRotating = true;
-        draggedElement = element;
-    });
-}
-
-element.addEventListener('click', function(e) {
-    e.stopPropagation();
-
-    // Toggle selection UI for this element
-    toggleSelection(element);
-
-    // Existing pause/unpause toggle
-    const isPaused = element.dataset.paused === 'true';
-    element.dataset.paused = (!isPaused).toString();
-
-    if (!isPaused) {
-        element.classList.add('paused');
-        const resizeHandle = document.createElement('div');
-        resizeHandle.className = 'resize-handle';
-        element.appendChild(resizeHandle);
-        resizeHandle.style.display = 'block';
-        resizeHandle.addEventListener('mousedown', function(e) {
-            e.stopPropagation();
-            isResizing = true;
-            draggedElement = element;
-        });
-    } else {
-        element.classList.remove('paused');
-        const handle = element.querySelector('.resize-handle');
-        if (handle) handle.remove();
-    }
-});
+            // Click to select/deselect
+            element.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSelection(element);
+            });
 
             // Drag functionality
             element.addEventListener('mousedown', startDragging);
@@ -428,24 +365,22 @@ element.addEventListener('click', function(e) {
             setTimeout(moveCharacter, 1000 + Math.random() * 2000);
         }
 
-function toggleSelection(element) {
-    const handles = element.querySelectorAll('.resize-handle, .rotation-handle');
-    const isSelected = handles[0] && handles[0].style.display !== 'none';
-
-    // Deselect all elements first
-    document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
-        handle.style.display = 'none';
-    });
-
-    if (!isSelected) {
-        handles.forEach(handle => {
-            handle.style.display = 'block';
-        });
-        selectedElement = element;  // Store the selected element
-    } else {
-        selectedElement = null;     // No element selected
-    }
-}
+        function toggleSelection(element) {
+            const handles = element.querySelectorAll('.resize-handle, .rotation-handle');
+            const isSelected = handles[0] && handles[0].style.display !== 'none';
+            
+            // Deselect all elements first
+            document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
+                handle.style.display = 'none';
+            });
+            
+            // Select this element if it wasn't selected
+            if (!isSelected) {
+                handles.forEach(handle => {
+                    handle.style.display = 'block';
+                });
+            }
+        }
 
         function startDragging(e) {
             if (e.target.classList.contains('resize-handle') || e.target.classList.contains('rotation-handle')) return;
@@ -489,14 +424,13 @@ function toggleSelection(element) {
         });
 
         // Click on background to deselect all
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.garden-element')) {
-        document.querySelectorAll('.resize-handle, .rotation-handle').forEach(handle => {
-            handle.style.display = 'none';
+        document.addEventListener('click', function(e) {
+            if (e.target === document.body) {
+                document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
+                    handle.style.display = 'none';
+                });
+            }
         });
-        selectedElement = null;
-    }
-});
     
 // Extend background support
 const bgMap = {
@@ -631,18 +565,11 @@ function moveRandomly(character, minDelay, maxDelay, step=200) {
 
         // Add this inside your <script> tag, preferably near the bottom or after the delete function
 
-
-document.getElementById('delete-selected-btn').addEventListener('click', () => {
-    if (selectedElement) {
-        if (confirm('Are you sure you want to delete the selected element?')) {
-            selectedElement.remove();
-            selectedElement = null;
-        }
-    } else {
-        alert('No element selected to delete.');
+document.getElementById('delete-btn').addEventListener('click', () => {
+    if (confirm('Are you sure you want to delete all decorations and characters?')) {
+        deleteAllDecorationsAndCharacters();
     }
 });
-
 
 
 // Toggle UI
