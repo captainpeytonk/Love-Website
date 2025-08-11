@@ -307,20 +307,59 @@
             document.body.appendChild(element);
         }
 
-        function setupDecorationElement(element) {
-            // Add resize handle
-            const resizeHandle = document.createElement('div');
-            resizeHandle.className = 'resize-handle';
-            element.appendChild(resizeHandle);
+function setupDecorationElement(element) {
+    // Add resize handle
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'resize-handle';
+    element.appendChild(resizeHandle);
 
-            // Add rotation handle
-            const rotationHandle = document.createElement('div');
-            rotationHandle.className = 'rotation-handle';
-            element.appendChild(rotationHandle);
+    // Add rotation handle
+    const rotationHandle = document.createElement('div');
+    rotationHandle.className = 'rotation-handle';
+    element.appendChild(rotationHandle);
 
-            // Hide handles initially
-            resizeHandle.style.display = 'none';
-            rotationHandle.style.display = 'none';
+    // Hide handles initially
+    resizeHandle.style.display = 'none';
+    rotationHandle.style.display = 'none';
+
+    // Selection toggling on click
+    element.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent deselect when clicking element
+
+        const isSelected = resizeHandle.style.display === 'block';
+
+        // Hide all handles on all elements
+        document.querySelectorAll('.resize-handle, .rotation-handle').forEach(handle => {
+            handle.style.display = 'none';
+        });
+
+        if (!isSelected) {
+            // Show handles on this element
+            resizeHandle.style.display = 'block';
+            rotationHandle.style.display = 'block';
+            selectedElement = element;
+        } else {
+            selectedElement = null;
+        }
+    });
+
+    // Drag functionality
+    element.addEventListener('mousedown', startDragging);
+
+    // Resize functionality
+    resizeHandle.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        isResizing = true;
+        draggedElement = element;
+    });
+
+    // Rotation functionality
+    rotationHandle.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        isRotating = true;
+        draggedElement = element;
+    });
+}
 
 element.addEventListener('click', function(e) {
     e.stopPropagation();
@@ -451,11 +490,11 @@ function toggleSelection(element) {
 
         // Click on background to deselect all
 document.addEventListener('click', function(e) {
-    if (e.target === document.body) {
-        document.querySelectorAll('.garden-element .resize-handle, .garden-element .rotation-handle').forEach(handle => {
+    if (!e.target.closest('.garden-element')) {
+        document.querySelectorAll('.resize-handle, .rotation-handle').forEach(handle => {
             handle.style.display = 'none';
         });
-        selectedElement = null;  // clear selection when clicking outside
+        selectedElement = null;
     }
 });
     
@@ -598,7 +637,7 @@ document.getElementById('delete-btn').addEventListener('click', () => {
     }
 });
 
-        document.getElementById('delete-selected-btn').addEventListener('click', () => {
+document.getElementById('delete-selected-btn').addEventListener('click', () => {
     if (selectedElement) {
         if (confirm('Are you sure you want to delete the selected element?')) {
             selectedElement.remove();
@@ -608,6 +647,7 @@ document.getElementById('delete-btn').addEventListener('click', () => {
         alert('No element selected to delete.');
     }
 });
+
 
 
 // Toggle UI
