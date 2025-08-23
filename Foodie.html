@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Memories</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+        }
+
+        .post-btn {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .post-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .polaroid {
+            background: white;
+            padding: 20px 20px 60px 20px;
+            transform: rotate(-2deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .polaroid:nth-child(even) {
+            transform: rotate(2deg);
+        }
+
+        .polaroid:hover {
+            transform: rotate(0deg) scale(1.05);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 3px;
+        }
+
+        .polaroid-title {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 15px;
+            padding: 0;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-image {
+            flex: 1;
+            max-width: 60%;
+        }
+
+        .modal-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-info {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #f8f9fa;
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .modal-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            color: #333;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 2001;
+        }
+
+        .close:hover {
+            color: #666;
+        }
+
+        .upload-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .upload-form {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .upload-form h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #da190b;
+            transform: translateY(-1px);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 1.2rem;
+            margin-top: 100px;
+        }
+
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .modal-content {
+                flex-direction: column;
+                max-width: 95%;
+            }
+
+            .modal-image {
+                max-width: 100%;
+            }
+
+            .modal-info {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .post-btn {
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🍽️ Food Memories</h1>
+        <p>Capture and share your culinary adventures</p>
+    </div>
+
+    <button class="post-btn" onclick="openUploadModal()">Post Your Food! 📸</button>
+
+    <div class="gallery" id="gallery">
+        <div class="empty-state">
+            <p>No food memories yet! Click "Post Your Food!" to get started.</p>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="upload-modal" id="uploadModal">
+        <div class="upload-form">
+            <span class="close" onclick="closeUploadModal()">&times;</span>
+            <h2>Share Your Food Memory</h2>
+            <form id="foodForm">
+                <div class="form-group">
+                    <label for="foodImage">Upload Photo</label>
+                    <div class="file-input">
+                        <input type="file" id="foodImage" accept="image/*" required>
+                        <label for="foodImage" class="file-input-label">
+                            📷 Click to choose a photo
+                        </label>
+                    </div>
+                    <img id="previewImage" class="preview-image">
+                </div>
+
+                <div class="form-group">
+                    <label for="foodTitle">Food Name</label>
+                    <input type="text" id="foodTitle" placeholder="e.g. Grandma's Apple Pie" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="foodDescription">Description</label>
+                    <textarea id="foodDescription" placeholder="Tell us about this delicious memory..." required></textarea>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Share Memory</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeViewModal()">&times;</span>
+            <div class="modal-image">
+                <img id="modalImage">
+            </div>
+            <div class="modal-info">
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <p class="modal-description" id="modalDescription"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let foodMemories = [];
+
+        // File input preview
+        document.getElementById('foodImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('previewImage');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    
+                    // Update label text
+                    document.querySelector('.file-input-label').innerHTML = '✅ Photo selected';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Form submission
+        document.getElementById('foodForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const imageFile = document.getElementById('foodImage').files[0];
+            const title = document.getElementById('foodTitle').value;
+            const description = document.getElementById('foodDescription').value;
+            
+            if (imageFile && title && description) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const foodMemory = {
+                        id: Date.now(),
+                        image: e.target.result,
+                        title: title,
+                        description: description,
+                        timestamp: new Date()
+                    };
+                    
+                    foodMemories.unshift(foodMemory); // Add to beginning of array
+                    renderGallery();
+                    closeUploadModal();
+                    resetForm();
+                };
+                reader.readAsDataURL(imageFile);
+            }
+        });
+
+        function renderGallery() {
+            const gallery = document.getElementById('gallery');
+            
+            if (foodMemories.length === 0) {
+                gallery.innerHTML = `
+                    <div class="empty-state">
+                        <p>No food memories yet! Click "Post Your Food!" to get started.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            gallery.innerHTML = foodMemories.map(memory => `
+                <div class="polaroid" onclick="openViewModal(${memory.id})">
+                    <img src="${memory.image}" alt="${memory.title}">
+                    <div class="polaroid-title">${memory.title}</div>
+                </div>
+            `).join('');
+        }
+
+        function openUploadModal() {
+            document.getElementById('uploadModal').style.display = 'block';
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').style.display = 'none';
+        }
+
+        function openViewModal(id) {
+            const memory = foodMemories.find(m => m.id === id);
+            if (memory) {
+                document.getElementById('modalImage').src = memory.image;
+                document.getElementById('modalTitle').textContent = memory.title;
+                document.getElementById('modalDescription').textContent = memory.description;
+                document.getElementById('viewModal').style.display = 'block';
+            }
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').style.display = 'none';
+        }
+
+        function resetForm() {
+            document.getElementById('foodForm').reset();
+            document.getElementById('previewImage').style.display = 'none';
+            document.querySelector('.file-input-label').innerHTML = '📷 Click to choose a photo';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const uploadModal = document.getElementById('uploadModal');
+            const viewModal = document.getElementById('viewModal');
+            
+            if (event.target === uploadModal) {
+                closeUploadModal();
+            }
+            if (event.target === viewModal) {
+                closeViewModal();
+            }
+        }
+
+        // Initialize gallery on page load
+        renderGallery();
+    </script>
+</body>
+</html>
