@@ -35,10 +35,17 @@
             font-size: 1.2rem;
         }
 
-        .post-btn {
+        .control-buttons {
             position: fixed;
             top: 30px;
             right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .post-btn {
             background: #4CAF50;
             color: white;
             border: none;
@@ -49,13 +56,31 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
             transition: all 0.3s ease;
-            z-index: 1000;
         }
 
         .post-btn:hover {
             background: #45a049;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .rearrange-btn {
+            background: #FF8C00;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .rearrange-btn:hover {
+            background: #FF7F00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 140, 0, 0.6);
         }
 
         .gallery {
