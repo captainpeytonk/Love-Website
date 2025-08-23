@@ -35,17 +35,10 @@
             font-size: 1.2rem;
         }
 
-        .control-buttons {
+        .post-btn {
             position: fixed;
             top: 30px;
             right: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 1000;
-        }
-
-        .post-btn {
             background: #4CAF50;
             color: white;
             border: none;
@@ -56,31 +49,13 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
             transition: all 0.3s ease;
+            z-index: 1000;
         }
 
         .post-btn:hover {
             background: #45a049;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
-        }
-
-        .rearrange-btn {
-            background: #FF8C00;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .rearrange-btn:hover {
-            background: #FF7F00;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 140, 0, 0.6);
         }
 
         .gallery {
@@ -375,6 +350,72 @@
                 font-size: 14px;
             }
         }
+    
+        /* --- Added styles for maker + rearrange --- */
+        .rearrange-btn {
+            position: fixed;
+            top: 100px;
+            right: 30px;
+            background: orange;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,165,0,0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .rearrange-btn:hover {
+            background: darkorange;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,165,0,0.6);
+        }
+
+        .sort-options {
+            display: none;
+            position: fixed;
+            top: 150px;
+            right: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            padding: 10px;
+            z-index: 1001;
+            min-width: 180px;
+        }
+        .sort-options h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .sort-options button {
+            display: block;
+            width: 100%;
+            background: orange;
+            border: none;
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+            margin: 6px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .sort-options button:hover {
+            background: darkorange;
+            transform: translateY(-1px);
+        }
+
+        .polaroid.we-did {
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+            color: white;
+        }
+
     </style>
 </head>
 <body>
@@ -384,6 +425,14 @@
     </div>
 
     <button class="post-btn" onclick="openUploadModal()">Post Your Food! 📸</button>
+    <button class="rearrange-btn" onclick="toggleSortOptions()">Rearrange 🔀</button>
+
+    <!-- Rearrange Options -->
+    <div id="sortOptions" class="sort-options">
+        <button onclick="setSort('date')">By Date</button>
+        <button onclick="setSort('we-did')">We Did!</button>
+        <button onclick="setSort('restaurant')">A Restaurant</button>
+    </div>
 
     <div class="gallery" id="gallery">
         <div class="empty-state">
@@ -418,6 +467,14 @@
                     <textarea id="foodDescription" placeholder="Tell us about this delicious memory..." required></textarea>
                 </div>
 
+                <div class="form-group">
+                    <label for="foodMaker">Who made the food?</label>
+                    <select id="foodMaker" required>
+                        <option value="we did!">We did!</option>
+                        <option value="a restaurant">A restaurant</option>
+                    </select>
+                </div>
+
                 <div class="form-buttons">
                     <button type="submit" class="btn btn-primary">Share Memory</button>
                     <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
@@ -436,12 +493,14 @@
             <div class="modal-info">
                 <h2 class="modal-title" id="modalTitle"></h2>
                 <p class="modal-description" id="modalDescription"></p>
+                <p id="modalMaker"></p>
             </div>
         </div>
     </div>
 
     <script>
         let foodMemories = [];
+        let currentSort = "date";
 
         // File input preview
         document.getElementById('foodImage').addEventListener('change', function(e) {
@@ -452,8 +511,6 @@
                     const preview = document.getElementById('previewImage');
                     preview.src = e.target.result;
                     preview.style.display = 'block';
-                    
-                    // Update label text
                     document.querySelector('.file-input-label').innerHTML = '✅ Photo selected';
                 };
                 reader.readAsDataURL(file);
@@ -463,23 +520,24 @@
         // Form submission
         document.getElementById('foodForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const imageFile = document.getElementById('foodImage').files[0];
             const title = document.getElementById('foodTitle').value;
             const description = document.getElementById('foodDescription').value;
-            
-            if (imageFile && title && description) {
+            const maker = document.getElementById('foodMaker').value;
+
+            if (imageFile && title && description && maker) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const foodMemory = {
                         id: Date.now(),
                         image: e.target.result,
-                        title: title,
-                        description: description,
+                        title,
+                        description,
+                        maker,
                         timestamp: new Date()
                     };
                     
-                    foodMemories.unshift(foodMemory); // Add to beginning of array
+                    foodMemories.unshift(foodMemory);
                     renderGallery();
                     closeUploadModal();
                     resetForm();
@@ -489,67 +547,58 @@
         });
 
         function renderGallery() {
+            let sorted = [...foodMemories];
+            if (currentSort === "we-did") {
+                sorted.sort((a, b) => (a.maker === "we did!" ? -1 : 1));
+            } else if (currentSort === "restaurant") {
+                sorted.sort((a, b) => (a.maker === "a restaurant" ? -1 : 1));
+            } else {
+                sorted.sort((a, b) => b.timestamp - a.timestamp);
+            }
+
             const gallery = document.getElementById('gallery');
-            
-            if (foodMemories.length === 0) {
-                gallery.innerHTML = `
-                    <div class="empty-state">
-                        <p>No food memories yet! Click "Post Your Food!" to get started.</p>
-                    </div>
-                `;
+            if (sorted.length === 0) {
+                gallery.innerHTML = `<div class="empty-state"><p>No food memories yet! Click "Post Your Food!" to get started.</p></div>`;
                 return;
             }
-            
-            gallery.innerHTML = foodMemories.map(memory => `
-                <div class="polaroid" onclick="openViewModal(${memory.id})">
+
+            gallery.innerHTML = sorted.map(memory => `
+                <div class="polaroid ${memory.maker === "we did!" ? "we-did" : ""}" onclick="openViewModal(${memory.id})">
                     <img src="${memory.image}" alt="${memory.title}">
                     <div class="polaroid-title">${memory.title}</div>
                 </div>
             `).join('');
         }
 
-        function openUploadModal() {
-            document.getElementById('uploadModal').style.display = 'block';
-        }
-
-        function closeUploadModal() {
-            document.getElementById('uploadModal').style.display = 'none';
-        }
-
+        function openUploadModal() { document.getElementById('uploadModal').style.display = 'block'; }
+        function closeUploadModal() { document.getElementById('uploadModal').style.display = 'none'; }
         function openViewModal(id) {
             const memory = foodMemories.find(m => m.id === id);
             if (memory) {
                 document.getElementById('modalImage').src = memory.image;
                 document.getElementById('modalTitle').textContent = memory.title;
                 document.getElementById('modalDescription').textContent = memory.description;
+                document.getElementById('modalMaker').textContent = `Made by: ${memory.maker}`;
                 document.getElementById('viewModal').style.display = 'block';
             }
         }
-
-        function closeViewModal() {
-            document.getElementById('viewModal').style.display = 'none';
-        }
-
+        function closeViewModal() { document.getElementById('viewModal').style.display = 'none'; }
         function resetForm() {
             document.getElementById('foodForm').reset();
             document.getElementById('previewImage').style.display = 'none';
             document.querySelector('.file-input-label').innerHTML = '📷 Click to choose a photo';
         }
 
-        // Close modals when clicking outside
-        window.onclick = function(event) {
-            const uploadModal = document.getElementById('uploadModal');
-            const viewModal = document.getElementById('viewModal');
-            
-            if (event.target === uploadModal) {
-                closeUploadModal();
-            }
-            if (event.target === viewModal) {
-                closeViewModal();
-            }
+        function toggleSortOptions() {
+            const opts = document.getElementById('sortOptions');
+            opts.style.display = opts.style.display === "none" ? "block" : "none";
+        }
+        function setSort(type) {
+            currentSort = type;
+            renderGallery();
+            document.getElementById('sortOptions').style.display = "none";
         }
 
-        // Initialize gallery on page load
         renderGallery();
     </script>
 </body>
