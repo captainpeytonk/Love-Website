@@ -276,14 +276,12 @@
 
 function openActivity(activityId) {
     const url = activityLinks[activityId];
-    if (url) {
-        if (activityId === 'activity7') {
-            // Open Spotify playlist in a new tab
-            window.open(url, 'https://open.spotify.com/playlist/1KG6OBFqUN9vmxYVU6H6R0?si=H5QMngj0TlSCZVhospDUCQ&pi=sD2VT7PcSz2fp');
-        } else {
-            // Normal page navigation
-            window.location.href = url;
-        }
+    if (url && url.startsWith('http')) {
+        // Open external links in a new tab
+        window.open(url, '_blank');
+    } else if (url) {
+        // Normal page navigation
+        window.location.href = url;
     } else {
                 alert('Please add your link for this activity in the JavaScript code!');
             }
