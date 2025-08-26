@@ -472,6 +472,7 @@ function setupCharacterElement(element) {
     // Override character click to toggle pause and show resize handle
 element.addEventListener('click', function(e) {
     e.stopPropagation();
+      toggleSelection(element);
     const isPaused = element.dataset.paused === 'true';
     element.dataset.paused = (!isPaused).toString();
 
@@ -558,16 +559,6 @@ function moveRandomly(character, minDelay, maxDelay, step=200) {
     setTimeout(move, minDelay);
 }
 
-        function deleteAllDecorationsAndCharacters() {
-    // Remove all decorations
-    document.querySelectorAll('.decoration').forEach(el => el.remove());
-
-    // Remove all characters
-    document.querySelectorAll('.character').forEach(el => el.remove());
-
-    // Clear the characters array
-    characters.length = 0;
-}
 
         // Add this inside your <script> tag, preferably near the bottom or after the delete function
 
