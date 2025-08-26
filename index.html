@@ -248,7 +248,7 @@
             activity4:  'Foodie.html',
             activity5:  'living garden.html',      
             activity6: '',                         
-            activity7: '',                    
+            activity7: 'https://open.spotify.com/playlist/1KG6OBFqUN9vmxYVU6H6R0?si=H5QMngj0TlSCZVhospDUCQ&pi=sD2VT7PcSz2fp',                    
             activity8: ''                     
         };
 
@@ -274,11 +274,17 @@
             document.getElementById('activitiesSection').style.display = 'block';
         }
 
-        function openActivity(activityId) {
-            const url = activityLinks[activityId];
-            if (url) {
-                window.location.href = url;
-            } else {
+function openActivity(activityId) {
+    const url = activityLinks[activityId];
+    if (url) {
+        if (activityId === 'activity7') {
+            // Open Spotify playlist in a new tab
+            window.open(url, '_blank');
+        } else {
+            // Normal page navigation
+            window.location.href = url;
+        }
+    } else {
                 alert('Please add your link for this activity in the JavaScript code!');
             }
         }
