@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Activity</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+      padding: 30px 20px;
+    }
+    h1 {
+      color: #fff;
+      font-size: 2.5em;
+      margin-bottom: 20px;
+    }
+    .activities-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .activity-btn {
+      background: linear-gradient(45deg, #ffc107, #ffeb3b);
+      border: none;
+      padding: 15px;
+      border-radius: 15px;
+      color: #495057;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+      text-decoration: none;
+      display: block;
+    }
+    .activity-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 193, 7, 0.4);
+      background: linear-gradient(45deg, #ffca28, #fff176);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Choose an Activity</h1>
+    <div class="activities-grid">
+      <a href="map.html" class="activity-btn">Travel Map</a>
+      <a href="timer.html" class="activity-btn">Timeline</a>
+      <a href="bucket.html" class="activity-btn">Bucket List</a>
+      <a href="Foodie.html" class="activity-btn">Food</a>
+      <a href="living garden.html" class="activity-btn">Garden</a>
+      <a href="Watched.html" class="activity-btn">Watchlist</a>
+      <a href="https://open.spotify.com/playlist/1KG6OBFqUN9vmxYVU6H6R0" class="activity-btn" target="_blank">Music Playlist</a>
+      <a href="#" class="activity-btn">Future Plans</a>
+    </div>
+  </div>
+
+   <script>
+  function openActivity(activityId) {
+    const url = activityLinks[activityId];
+    if (url && url.startsWith('http')) {
+        // Open external links in a new tab
+        window.open(url, '_blank');
+    } else if (url) {
+        // Normal page navigation
+        window.location.href = url;
+    } else {
+                alert('Please add your link for this activity in the JavaScript code!');
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('nameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkName();
+            }
+        });
+    </script>
+</body>
+</html>
+
+</body>
+</html>
