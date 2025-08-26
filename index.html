@@ -277,7 +277,7 @@
         function openActivity(activityId) {
             const url = activityLinks[activityId];
             if (url) {
-                window.open(url, '_blank');
+                window.location.href = url;
             } else {
                 alert('Please add your link for this activity in the JavaScript code!');
             }
