@@ -4,10 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Love Timeline</title>
-
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -194,208 +190,220 @@
     }
   </style>
 </head>
-  
+  <div id="leftGallery" class="scroll-gallery left"></div>
+<div id="rightGallery" class="scroll-gallery right"></div>
 <body>
 
-  <h1>💕 Our Love Timeline</h1>
-  <div id="addButton" title="Add a new event">＋</div>
+<h1>💕 Our Love Timeline</h1>
 
-  <form id="eventForm" aria-label="Add a new event">
-    <input type="text" id="eventName" placeholder="Event name (e.g. 'Together Since')" required />
-    <input type="text" id="eventDate" placeholder="DD/MM/YYYY" required />
-    <button type="submit" disabled>Add Event</button>
-  </form>
+<div id="addButton" title="Add a new event">＋</div>
 
-  <div class="timeline-container">
-    <div id="eventsList"></div>
-    <div id="sidebar"></div>
-  </div>
+<form id="eventForm" aria-label="Add a new event">
+  <input type="text" id="eventName" placeholder="Event name (e.g. 'Together Since')" required />
+  <input type="date" id="eventDate" required />
+  <button type="submit" disabled>Add Event</button>
+</form>
 
-  <script>
-    const addButton = document.getElementById('addButton');
-    const eventForm = document.getElementById('eventForm');
-    const eventNameInput = document.getElementById('eventName');
-    const eventDateInput = document.getElementById('eventDate');
-    const submitBtn = eventForm.querySelector('button');
-    const eventsList = document.getElementById('eventsList');
-    let events = [];
+<div class="timeline-container">
+  <div id="eventsList"></div>
+  <div id="sidebar"></div>
+</div>
 
-    // Initialize Flatpickr
-    flatpickr(eventDateInput, {
-      dateFormat: "d/m/Y",
-      allowInput: true
+<script>
+  const addButton = document.getElementById('addButton');
+  const eventForm = document.getElementById('eventForm');
+  const eventNameInput = document.getElementById('eventName');
+  const eventDateInput = document.getElementById('eventDate');
+  const submitBtn = eventForm.querySelector('button');
+  const eventsList = document.getElementById('eventsList');
+
+  let events = [];
+
+  addButton.addEventListener('click', () => {
+    addButton.style.display = 'none';
+    eventForm.style.display = 'flex';
+    eventNameInput.focus();
+  });
+
+  function checkInputs() {
+    submitBtn.disabled = !(eventNameInput.value.trim() && eventDateInput.value);
+  }
+
+  eventNameInput.addEventListener('input', checkInputs);
+  eventDateInput.addEventListener('input', checkInputs);
+
+  function formatDateDMY(dateStr) {
+    const d = new Date(dateStr + "T00:00:00");
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  eventForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = eventNameInput.value.trim();
+    const date = eventDateInput.value;
+    if (!name || !date) return;
+
+    events.push({ name, date });
+    eventNameInput.value = '';
+    eventDateInput.value = '';
+    submitBtn.disabled = true;
+
+    eventForm.style.display = 'none';
+    addButton.style.display = 'flex';
+    renderEvents();
+  });
+
+  function deleteEvent(index) {
+    events.splice(index, 1);
+    renderEvents();
+  }
+
+  function renderEvents() {
+    eventsList.innerHTML = '';
+    document.getElementById('sidebar').innerHTML = '';
+    if (events.length === 0) return;
+
+    const sortedEvents = [...events].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const grouped = {};
+
+    sortedEvents.forEach(event => {
+      const date = new Date(event.date);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(event);
     });
 
-    addButton.addEventListener('click', () => {
-      addButton.style.display = 'none';
-      eventForm.style.display = 'flex';
-      eventNameInput.focus();
-    });
+    const sidebar = document.getElementById('sidebar');
+    const sidebarList = document.createElement('div');
 
-    function checkInputs() {
-      submitBtn.disabled = !(eventNameInput.value.trim() && eventDateInput.value);
-    }
+    Object.keys(grouped).forEach(key => {
+      const [year, month] = key.split('-');
+      const monthName = new Date(`${year}-${month}-01`).toLocaleString('default', { month: 'short' });
 
-    eventNameInput.addEventListener('input', checkInputs);
-    eventDateInput.addEventListener('input', checkInputs);
-
-    function parseDateDMY(dateStr) {
-      const [day, month, year] = dateStr.split('/').map(Number);
-      return new Date(year, month - 1, day);
-    }
-
-    function formatDateDMY(dateObj) {
-      const day = String(dateObj.getDate()).padStart(2,'0');
-      const month = String(dateObj.getMonth() + 1).padStart(2,'0');
-      const year = dateObj.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
-
-    eventForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const name = eventNameInput.value.trim();
-      const dateStr = eventDateInput.value;
-      if (!name || !dateStr) return;
-
-      const date = parseDateDMY(dateStr).toISOString().split('T')[0]; // store as YYYY-MM-DD
-      events.push({ name, date });
-
-      eventNameInput.value = '';
-      eventDateInput.value = '';
-      submitBtn.disabled = true;
-      eventForm.style.display = 'none';
-      addButton.style.display = 'flex';
-      renderEvents();
-    });
-
-    function deleteEvent(index) {
-      events.splice(index, 1);
-      renderEvents();
-    }
-
-    function renderEvents() {
-      eventsList.innerHTML = '';
-      document.getElementById('sidebar').innerHTML = '';
-      if (events.length === 0) return;
-
-      const sortedEvents = [...events].sort((a,b)=>new Date(a.date)-new Date(b.date));
-      const grouped = {};
-      sortedEvents.forEach(event=>{
-        const date = new Date(event.date);
-        const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
-        if(!grouped[key]) grouped[key]=[];
-        grouped[key].push(event);
+      const link = document.createElement('div');
+      link.className = 'sidebar-link';
+      link.textContent = `${monthName} ${year}`;
+      link.addEventListener('click', () => {
+        document.getElementById(`month-${key}`).scrollIntoView({ behavior: 'smooth' });
       });
 
-      const sidebar = document.getElementById('sidebar');
-      Object.keys(grouped).sort((a,b)=>{
-        const [y1,m1]=a.split('-').map(Number);
-        const [y2,m2]=b.split('-').map(Number);
-        return new Date(y1,m1-1)-new Date(y2,m2-1);
-      }).forEach(key=>{
-        const [year, month]=key.split('-');
-        const monthName = new Date(`${year}-${month}-01`).toLocaleString('default',{month:'short'});
-        const link = document.createElement('div');
-        link.className='sidebar-link';
-        link.textContent=`${monthName} ${year}`;
-        link.addEventListener('click',()=>document.getElementById(`month-${key}`).scrollIntoView({behavior:'smooth'}));
-        sidebar.appendChild(link);
-      });
+      sidebarList.appendChild(link);
+    });
 
-      Object.keys(grouped).sort((a,b)=>{
-        const [y1,m1]=a.split('-').map(Number);
-        const [y2,m2]=b.split('-').map(Number);
-        return new Date(y1,m1-1)-new Date(y2,m2-1);
-      }).forEach(key=>{
-        const [year, month]=key.split('-');
-        const groupDiv=document.createElement('div');
-        groupDiv.className='event-month-group';
-        groupDiv.id=`month-${key}`;
+    sidebar.appendChild(sidebarList);
 
-        const header=document.createElement('div');
-        header.className='event-month-header';
-        const monthName=new Date(`${year}-${month}-01`).toLocaleString('default',{month:'long'});
-        header.textContent=`${monthName} ${year}`;
-        groupDiv.appendChild(header);
+    Object.keys(grouped).forEach((key) => {
+      const [year, month] = key.split('-');
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'event-month-group';
+      groupDiv.id = `month-${key}`;
 
-        grouped[key].forEach(event=>{
-          const card=document.createElement('div');
-          card.className='event-card';
-          const info=document.createElement('div');
-          info.className='event-info';
+      const header = document.createElement('div');
+      header.className = 'event-month-header';
+      const monthName = new Date(`${year}-${month}-01`).toLocaleString('default', { month: 'long' });
+      header.textContent = `${monthName} ${year}`;
 
-          const nameDiv=document.createElement('div');
-          nameDiv.className='event-name';
-          nameDiv.textContent=event.name;
+      groupDiv.appendChild(header);
 
-          const dateDiv=document.createElement('div');
-          dateDiv.className='event-date';
-          dateDiv.textContent=formatDateDMY(new Date(event.date));
+      grouped[key].forEach((event, i) => {
+        const card = document.createElement('div');
+        card.className = 'event-card';
 
-          const timerDiv=document.createElement('div');
-          timerDiv.className='event-timer';
-          timerDiv.id=`timer-${event.name}-${event.date}`;
+        const info = document.createElement('div');
+        info.className = 'event-info';
 
-          info.appendChild(nameDiv);
-          info.appendChild(dateDiv);
-          info.appendChild(timerDiv);
+        const name = document.createElement('div');
+        name.className = 'event-name';
+        name.textContent = event.name;
 
-          const delBtn=document.createElement('button');
-          delBtn.className='delete-btn';
-          delBtn.innerHTML='🗑️';
-          delBtn.title='Delete event';
-          delBtn.addEventListener('click',()=>{
-            const indexToDelete=events.findIndex(e=>e.name===event.name && e.date===event.date);
-            if(indexToDelete!==-1) deleteEvent(indexToDelete);
-          });
+        const date = document.createElement('div');
+        date.className = 'event-date';
+        date.textContent = formatDateDMY(event.date);
 
-          card.appendChild(info);
-          card.appendChild(delBtn);
-          groupDiv.appendChild(card);
+        const timer = document.createElement('div');
+        timer.className = 'event-timer';
+        timer.id = `timer-${event.name}-${event.date}`;
+
+        info.appendChild(name);
+        info.appendChild(date);
+        info.appendChild(timer);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-btn';
+        delBtn.innerHTML = '🗑️';
+        delBtn.title = 'Delete event';
+        delBtn.addEventListener('click', () => {
+          const indexToDelete = events.findIndex(e => e.name === event.name && e.date === event.date);
+          if (indexToDelete !== -1) deleteEvent(indexToDelete);
         });
 
-        eventsList.appendChild(groupDiv);
+        card.appendChild(info);
+        card.appendChild(delBtn);
+        groupDiv.appendChild(card);
       });
 
-      updateTimers();
-    }
+      eventsList.appendChild(groupDiv);
+    });
 
-    function updateTimers() {
-      const now=new Date();
-      events.forEach(event=>{
-        const eventDate=new Date(event.date+"T00:00:00");
-        let diff=now-eventDate;
-        if(diff<0) diff=0;
+    updateTimers();
+  }
 
-        let totalSeconds=Math.floor(diff/1000);
-        const seconds=totalSeconds%60;
-        const totalMinutes=Math.floor(totalSeconds/60);
-        const minutes=totalMinutes%60;
-        const totalHours=Math.floor(totalMinutes/60);
-        const hours=totalHours%24;
-        const totalDays=Math.floor(totalHours/24);
+  function updateTimers() {
+    const now = new Date();
 
-        const years=Math.floor(totalDays/365.25);
-        const months=Math.floor((totalDays%365.25)/30.44);
-        const days=Math.floor((totalDays%365.25)%30.44);
+    events.forEach(event => {
+      const eventDate = new Date(event.date + "T00:00:00");
+      let diff = now - eventDate;
+      if (diff < 0) diff = 0;
 
-        const text=`⏳ ${years} Years ${months} Months ${days} Days ${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
-        const timerEl=document.getElementById(`timer-${event.name}-${event.date}`);
-        if(timerEl) timerEl.textContent=text;
-      });
-    }
+      let totalSeconds = Math.floor(diff / 1000);
+      const seconds = totalSeconds % 60;
+      const totalMinutes = Math.floor(totalSeconds / 60);
+      const minutes = totalMinutes % 60;
+      const totalHours = Math.floor(totalMinutes / 60);
+      const hours = totalHours % 24;
+      const totalDays = Math.floor(totalHours / 24);
 
-    setInterval(updateTimers,1000);
+      const years = Math.floor(totalDays / 365.25);
+      const months = Math.floor((totalDays % 365.25) / 30.44);
+      const days = Math.floor((totalDays % 365.25) % 30.44);
 
-    function loadScrollGalleries() {
-      const leftGallery=document.getElementById('leftGallery');
-      const rightGallery=document.getElementById('rightGallery');
-      const leftImages=JSON.parse(localStorage.getItem("loveGalleryBucket")||"[]");
-      const rightImages=JSON.parse(localStorage.getItem("loveGalleryMap")||"[]");
-      leftImages.forEach(url=>{ const img=document.createElement('img'); img.src=url; leftGallery.appendChild(img); });
-      rightImages.forEach(url=>{ const img=document.createElement('img'); img.src=url; rightGallery.appendChild(img); });
-    }
-    window.addEventListener("load", loadScrollGalleries);
-  </script>
+      const text = `⏳ ${years} Years ${months} Months ${days} Days ${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
+
+      const timerEl = document.getElementById(`timer-${event.name}-${event.date}`);
+      if (timerEl) timerEl.textContent = text;
+    });
+  }
+
+  setInterval(updateTimers, 1000);
+function loadScrollGalleries() {
+  const leftGallery = document.getElementById('leftGallery');
+  const rightGallery = document.getElementById('rightGallery');
+
+  const leftImages = JSON.parse(localStorage.getItem("loveGalleryBucket") || "[]");
+  const rightImages = JSON.parse(localStorage.getItem("loveGalleryMap") || "[]");
+
+  leftImages.forEach(url => {
+    const img = document.createElement('img');
+    img.src = url;
+    leftGallery.appendChild(img);
+  });
+
+  rightImages.forEach(url => {
+    const img = document.createElement('img');
+    img.src = url;
+    rightGallery.appendChild(img);
+  });
+}
+
+window.addEventListener("load", loadScrollGalleries);
+
+  
+</script>
+
 </body>
 </html>
