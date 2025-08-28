@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Love Bus Website</title>
+  <style>
+    /* Make the background image cover the whole screen */
+    body {
+      margin: 0;
+      height: 100vh;
+      background: url("Anniversary/Love background.jpg") no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    /* Bus styling */
+    #love-bus {
+      width: 250px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      position: absolute;
+      bottom: 50px;
+    }
+
+    /* Shake animation */
+    @keyframes shakeUp {
+      0% { transform: translateY(0); }
+      25% { transform: translateY(-15px); }
+      50% { transform: translateY(0); }
+      75% { transform: translateY(-8px); }
+      100% { transform: translateY(0); }
+    }
+
+    .shake {
+      animation: shakeUp 0.6s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- Love Bus -->
+  <img id="love-bus" src="Anniversary/Love Bus.png" alt="Love Bus">
+
+  <!-- Sound -->
+  <audio id="bus-sound" src="Anniversary/sound.mp3"></audio>
+
+  <script>
+    const bus = document.getElementById("love-bus");
+    const sound = document.getElementById("bus-sound");
+
+    bus.addEventListener("click", () => {
+      // Play sound
+      sound.currentTime = 0;
+      sound.play();
+
+      // Add shake animation
+      bus.classList.add("shake");
+
+      // Remove shake class after animation finishes
+      setTimeout(() => {
+        bus.classList.remove("shake");
+      }, 600);
+    });
+  </script>
+</body>
+</html>
