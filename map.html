@@ -379,6 +379,9 @@
             <button class="config-btn" onclick="checkConfig()" style="background: #4ecdc4; color: white; border: none; padding: 8px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem;">
                 ⚙️ Config
             </button>
+            <button class="health-btn" onclick="healthCheck()" style="background: #45aaf2; color: white; border: none; padding: 8px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem;">
+                🏥 Health
+            </button>
         </div>
     </div>
     
@@ -873,6 +876,34 @@
             } catch (error) {
                 console.error('Config check error:', error);
                 alert(`❌ Config check error: ${error.message}`);
+            }
+        }
+
+        // Health check function
+        async function healthCheck() {
+            try {
+                console.log('Performing health check...');
+                const response = await fetch('/api/health');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Health check result:', data);
+                
+                let message = `🏥 Health Check\n\n`;
+                message += `Status: ${data.status === 'ok' ? '✅ Healthy' : '❌ Unhealthy'}\n`;
+                message += `Environment: ${data.environment.env}\n`;
+                message += `Node: ${data.environment.nodeVersion}\n`;
+                message += `Blob Token: ${data.environment.hasBlobToken ? '✅ Present' : '❌ Missing'}\n`;
+                message += `Blob Status: ${data.blobStatus === 'working' ? '✅ Working' : '❌ Failed'}\n`;
+                message += `\nTimestamp: ${data.timestamp}`;
+                
+                alert(message);
+            } catch (error) {
+                console.error('Health check error:', error);
+                alert(`❌ Health check failed: ${error.message}\n\nThis usually means the API endpoints are not working. Please check your Vercel deployment.`);
             }
         }
 
