@@ -93,6 +93,29 @@
     .shake {
       animation: shakeUp 0.6s ease;
     }
+/* Popup hearts style */
+#hearts-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 25vw;
+  z-index: 9999;
+}
+
+/* Left-right shake animation */
+@keyframes shakeSide {
+  0% { transform: translate(-50%, -50%) translateX(0); }
+  25% { transform: translate(-50%, -50%) translateX(-15px); }
+  50% { transform: translate(-50%, -50%) translateX(15px); }
+  75% { transform: translate(-50%, -50%) translateX(-8px); }
+  100% { transform: translate(-50%, -50%) translateX(0); }
+}
+
+.shake-side {
+  animation: shakeSide 0.6s ease infinite;
+}
+    
   </style>
 </head>
 <body>
@@ -104,26 +127,39 @@
 <img id="love-birds" class="clickable" data-sound="Anniversary/birds.mp3" src="Anniversary/Love birds.png" alt="Love Birds">
 <img id="love-bat" class="clickable" data-sound="Anniversary/bat.mp3" src="Anniversary/Love bat.png" alt="Love Bat">
 <img id="love-castle" class="clickable" data-sound="Anniversary/castle.mp3" src="Anniversary/Love castle.png" alt="Love Castle">
+  <img id="hearts-popup" src="Anniversary/hearts.png" alt="Hearts" style="display: none;">
 
 <script>
-  const clickableImages = document.querySelectorAll(".clickable");
+const clickableImages = document.querySelectorAll(".clickable");
+const heartsPopup = document.getElementById("hearts-popup");
 
-  clickableImages.forEach(img => {
-    img.addEventListener("click", () => {
-      // Create a new audio object for each click
-      const sound = new Audio(img.dataset.sound);
-      sound.currentTime = 0;
-      sound.play();
+clickableImages.forEach(img => {
+  img.addEventListener("click", () => {
+    // Create a new audio object for each click
+    const sound = new Audio(img.dataset.sound);
+    sound.currentTime = 0;
+    sound.play();
 
-      // Add shake animation
-      img.classList.add("shake");
+    // Add shake animation to clicked image
+    img.classList.add("shake");
+    setTimeout(() => {
+      img.classList.remove("shake");
+    }, 600);
 
-      // Remove shake class after animation
-      setTimeout(() => {
-        img.classList.remove("shake");
-      }, 600);
-    });
+    // Special effect for Alex
+    if (img.id === "love-alex") {
+      // Show hearts popup
+      heartsPopup.style.display = "block";
+      heartsPopup.classList.add("shake-side");
+
+      // Hide hearts when sound finishes
+      sound.addEventListener("ended", () => {
+        heartsPopup.style.display = "none";
+        heartsPopup.classList.remove("shake-side");
+      });
+    }
   });
+});
 </script>
 </body>
 </html>
