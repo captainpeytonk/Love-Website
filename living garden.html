@@ -21,27 +21,7 @@
             position: relative;
         }
 
-        .background-forest {
-            background: linear-gradient(135deg, #2d5016 0%, #4a7c59 50%, #6b8e23 100%);
-            background-image: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
-        }
-
-        .background-meadow {
-            background: linear-gradient(135deg, #87ceeb 0%, #98fb98 30%, #90ee90 70%, #228b22 100%);
-            background-image:
-                radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-        }
-
-        .background-mystical {
-            background: linear-gradient(135deg, #2c1810 0%, #4a148c 30%, #6a1b9a 70%, #8e24aa 100%);
-            background-image:
-                radial-gradient(circle at 25% 25%, rgba(186, 104, 200, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(156, 39, 176, 0.2) 0%, transparent 50%);
-        }
+        
 
         .controls {
             position: fixed;
@@ -94,9 +74,7 @@
             transform: scale(1.1);
         }
 
-        .bg-forest { background: linear-gradient(135deg, #2d5016, #4a7c59, #6b8e23); }
-        .bg-meadow { background: linear-gradient(135deg, #87ceeb, #98fb98, #90ee90, #228b22); }
-        .bg-mystical { background: linear-gradient(135deg, #2c1810, #4a148c, #6a1b9a, #8e24aa); }
+        
 
         input[type="file"] {
             margin: 5px 0;
@@ -202,19 +180,16 @@
         }
     </style>
 </head>
-<body class="background-forest">
+ <body>
 <button id="toggle-ui" style="position: fixed; top: 20px; right: 20px; z-index: 1001; background: #2d5016; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer;">⇅</button>
 
     <div class="controls">
         <div class="control-group">
             <h3>🌿 Choose Background</h3>
             <div class="background-selector">
-                <div class="bg-option" style="background-image: url('textures/Grass.png');" data-bg="grass" title="Grass"></div>
-                <div class="bg-option" style="background-image: url('textures/Snow.png');" data-bg="snow" title="Snow"></div>
-                <div class="bg-option" style="background-image: url('textures/Dirt.png');" data-bg="dirt" title="Dirt"></div>
-                <div class="bg-option bg-forest" data-bg="forest" title="Forest"></div>
-                <div class="bg-option bg-meadow" data-bg="meadow" title="Meadow"></div>
-                <div class="bg-option bg-mystical" data-bg="mystical" title="Mystical"></div>
+                                 <div class="bg-option" style="background-image: url('textures/grass.png');" data-bg="grass" title="Grass"></div>
+                 <div class="bg-option" style="background-image: url('textures/snow.png');" data-bg="snow" title="Snow"></div>
+                 <div class="bg-option" style="background-image: url('textures/dirt.png');" data-bg="dirt" title="Dirt"></div>
                 <button id="delete-btn" title="Delete all decorations and characters" style="font-size: 20px; cursor: pointer;">
                     🗑️
                 </button>
@@ -547,35 +522,38 @@ document.querySelectorAll('.bg-option').forEach(option => {
         
         const bg = this.dataset.bg;
         
-        // Reset body styles
+        // Reset body styles completely
         document.body.className = '';
         document.body.style.backgroundImage = '';
         document.body.style.backgroundSize = '';
         document.body.style.backgroundPosition = '';
         document.body.style.backgroundRepeat = '';
+        document.body.style.background = '';
         
-        if (bg === 'grass' || bg === 'snow' || bg === 'dirt') {
-            // Use texture images
-            const textureUrl = `textures/${bg}.png`;
-            document.body.style.backgroundImage = `url('${textureUrl}')`;
-            document.body.style.backgroundSize = 'cover';
-            document.body.style.backgroundPosition = 'center';
-            document.body.style.backgroundRepeat = 'no-repeat';
-            
-            // Test if image loads
-            const testImg = new Image();
-            testImg.onload = () => console.log(`✅ Texture loaded successfully: ${textureUrl}`);
-            testImg.onerror = () => console.error(`❌ Failed to load texture: ${textureUrl}`);
-            testImg.src = textureUrl;
-            
-        } else {
-            // Use CSS gradients
-            document.body.className = `background-${bg}`;
-        }
+        // Apply texture background
+        const textureUrl = `textures/${bg}.png`;
+        document.body.style.backgroundImage = `url('${textureUrl}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundRepeat = 'no-repeat';
+        
+        // Test if image loads
+        const testImg = new Image();
+        testImg.onload = () => {
+            console.log(`✅ Texture loaded successfully: ${textureUrl}`);
+            console.log('Background applied successfully');
+        };
+        testImg.onerror = () => {
+            console.error(`❌ Failed to load texture: ${textureUrl}`);
+            // Fallback to a simple color if texture fails
+            document.body.style.background = bg === 'grass' ? '#90EE90' : 
+                                           bg === 'snow' ? '#F0F8FF' : 
+                                           bg === 'dirt' ? '#8B4513' : '#FFFFFF';
+        };
+        testImg.src = textureUrl;
         
         console.log(`Background changed to: ${bg}`);
         console.log('Current body styles:', {
-            className: document.body.className,
             backgroundImage: document.body.style.backgroundImage,
             backgroundSize: document.body.style.backgroundSize
         });
