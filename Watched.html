@@ -396,7 +396,6 @@
                 
                 this.setupEventListeners();
                 this.loadShowsFromBlob();
-                this.updateDisplay();
             }
 
             setupEventListeners() {
@@ -720,6 +719,9 @@
                     console.error('Error loading shows from blob storage:', error);
                     this.loadShowsFromLocalStorage();
                 }
+                
+                // Update display after loading data
+                this.updateDisplay();
             }
 
             // Save shows to blob storage
@@ -767,6 +769,7 @@
                     const saved = localStorage.getItem('watchlist');
                     if (saved) {
                         this.shows = JSON.parse(saved);
+                        console.log(`Loaded ${this.shows.length} shows from localStorage`);
                     }
                 } catch (e) {
                     console.log('Could not load from localStorage');
