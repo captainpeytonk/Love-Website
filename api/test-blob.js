@@ -4,72 +4,75 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-        console.log('Testing blob access...');
+        console.log('Testing Vercel Blob configuration...');
         
-        // Import @vercel/blob
-        const { head, list } = await import('@vercel/blob');
+        const { list, put, del } = await import('@vercel/blob');
         
-        try {
-            console.log('Listing available blobs...');
-            const blobs = await list();
-            console.log('All available blobs:', blobs.blobs.map(b => ({ pathname: b.pathname, uploadedAt: b.uploadedAt })));
-            console.log('Number of blobs found:', blobs.blobs.length);
-            
-            // Find all files that start with 'worldspots-points-'
-            const pointsFiles = blobs.blobs.filter(blob => blob.pathname.startsWith('worldspots-points-'));
-            console.log('Found points files:', pointsFiles.map(f => ({ pathname: f.pathname, uploadedAt: f.uploadedAt })));
-            
-            if (pointsFiles.length > 0) {
-                // Sort by upload date to get the most recent
-                pointsFiles.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-                const latestBlob = pointsFiles[0];
-                console.log('Using most recent file:', latestBlob.pathname, 'uploaded at:', latestBlob.uploadedAt);
-                
-                // Use the URL directly to fetch the data
-                const response = await fetch(latestBlob.url);
-                console.log('Fetch response:', response.status, response.statusText);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const text = await response.text();
-                console.log('Raw response text length:', text.length);
-                console.log('Raw response text (first 500 chars):', text.substring(0, 500));
-                
-                const pointsData = JSON.parse(text);
-                console.log('Parsed data successfully, points count:', pointsData.length);
-                console.log('All points data:', JSON.stringify(pointsData, null, 2));
-                
-                res.status(200).json({ 
-                    success: true, 
-                    blob: latestBlob,
-                    points: pointsData,
-                    count: pointsData.length,
-                    rawText: text.substring(0, 200), // Show first 200 chars for debugging
-                    allPointsFiles: pointsFiles.map(f => ({ pathname: f.pathname, uploadedAt: f.uploadedAt }))
-                });
-            } else {
-                console.log('No points files found');
-                res.status(200).json({ 
-                    success: false, 
-                    error: 'No points files found',
-                    availableBlobs: blobs.blobs.map(b => b.pathname)
-                });
-            }
-        } catch (listError) {
-            console.error('Error listing blobs:', listError);
-            res.status(200).json({ 
-                success: false, 
-                error: `Error listing blobs: ${listError.message}`
-            });
+        // Test 1: Lister les blobs existants
+        console.log('Test 1: Listing existing blobs...');
+        const blobs = await list();
+        console.log('Found blobs:', blobs.blobs.length);
+        
+        // Test 2: Créer un fichier de test
+        console.log('Test 2: Creating test file...');
+        const testFileName = `test-${Date.now()}.txt`;
+        const testContent = 'Hello WorldSpots!';
+        
+        const { url: testUrl } = await put(testFileName, testContent, {
+            access: 'public',
+            contentType: 'text/plain'
+        });
+        console.log('Test file created:', testUrl);
+        
+        // Test 3: Supprimer le fichier de test
+        console.log('Test 3: Deleting test file...');
+        await del(testFileName);
+        console.log('Test file deleted');
+        
+        // Test 4: Vérifier les points existants
+        console.log('Test 4: Checking existing points...');
+        const pointsFiles = blobs.blobs.filter(blob => blob.pathname.startsWith('worldspots-points-'));
+        console.log('Points files found:', pointsFiles.length);
+        
+        let latestPoints = null;
+        if (pointsFiles.length > 0) {
+            pointsFiles.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+            latestPoints = pointsFiles[0];
+            console.log('Latest points file:', latestPoints.pathname);
         }
+        
+        res.status(200).json({
+            success: true,
+            message: 'Vercel Blob is working correctly',
+            blobCount: blobs.blobs.length,
+            pointsFiles: pointsFiles.length,
+            latestPointsFile: latestPoints ? latestPoints.pathname : null,
+            testUrl: testUrl
+        });
+        
     } catch (error) {
-        console.error('Test error:', error);
-        res.status(500).json({ 
-            error: 'Test failed', 
-            details: error.message,
-            stack: error.stack
+        console.error('Blob test error:', error);
+        
+        // Diagnostic des erreurs courantes
+        let errorMessage = error.message;
+        let errorType = 'unknown';
+        
+        if (error.message.includes('BLOB_READ_WRITE_TOKEN')) {
+            errorType = 'token_error';
+            errorMessage = 'Vercel Blob token is missing or invalid. Please check your environment variables.';
+        } else if (error.message.includes('network') || error.message.includes('timeout')) {
+            errorType = 'network_error';
+            errorMessage = 'Network error connecting to Vercel Blob service.';
+        } else if (error.message.includes('unauthorized') || error.message.includes('403')) {
+            errorType = 'permission_error';
+            errorMessage = 'Permission denied. Check your Vercel Blob token permissions.';
+        }
+        
+        res.status(500).json({
+            success: false,
+            error: errorMessage,
+            errorType: errorType,
+            details: error.message
         });
     }
 }

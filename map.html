@@ -73,6 +73,36 @@
             box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
         }
 
+        .upload-progress {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            z-index: 3000;
+            display: none;
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .progress-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         #map {
             width: 100%;
             height: calc(100vh - 80px);
@@ -344,7 +374,10 @@
                 📸 Add Media
             </button>
             <button class="test-btn" onclick="testBlob()" style="background: #ff6b6b; color: white; border: none; padding: 8px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem;">
-                🔍 Test
+                🔍 Test Blob
+            </button>
+            <button class="config-btn" onclick="checkConfig()" style="background: #4ecdc4; color: white; border: none; padding: 8px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem;">
+                ⚙️ Config
             </button>
         </div>
     </div>
@@ -354,6 +387,11 @@
     </div>
     
     <div id="map"></div>
+
+    <div class="upload-progress" id="uploadProgress">
+        <div class="progress-spinner"></div>
+        <div id="progressText">Uploading your media...</div>
+    </div>
 
     <div class="upload-modal" id="uploadModal">
         <div class="modal-content">
@@ -476,6 +514,15 @@
             document.querySelector('.file-input-label').textContent = '🖼️ Select Media File';
         }
 
+        function showUploadProgress(message) {
+            document.getElementById('progressText').textContent = message;
+            document.getElementById('uploadProgress').style.display = 'block';
+        }
+
+        function hideUploadProgress() {
+            document.getElementById('uploadProgress').style.display = 'none';
+        }
+
         function setUploadLocation(latlng) {
             selectedLocation = latlng;
             
@@ -542,6 +589,19 @@
                 return;
             }
 
+            // Validation côté client
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/ogg'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Invalid file type. Please select an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM, OGG) file.');
+                return;
+            }
+
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                alert('File too large. Please select a file smaller than 10MB.');
+                return;
+            }
+
             if (!category) {
                 alert('Please select a category!');
                 return;
@@ -553,13 +613,19 @@
             submitBtn.textContent = 'Uploading...';
             submitBtn.disabled = true;
 
+            // Show progress indicator
+            showUploadProgress('Reading file...');
+
             try {
                 // Read file as base64
                 const reader = new FileReader();
                 reader.onload = async (event) => {
                     try {
+                        showUploadProgress('Uploading to cloud storage...');
                         // Upload media file to Vercel Blob
                         const fileName = `worldspots/${Date.now()}-${file.name}`;
+                        console.log('Starting upload for file:', fileName, 'Type:', file.type, 'Size:', file.size);
+                        
                         const uploadResponse = await fetch('/api/upload', {
                             method: 'POST',
                             headers: {
@@ -576,11 +642,17 @@
                             throw error;
                         });
 
+                        console.log('Upload response status:', uploadResponse.status);
+                        
                         if (!uploadResponse.ok) {
-                            throw new Error('Failed to upload media');
+                            const errorData = await uploadResponse.json().catch(() => ({ error: 'Unknown error' }));
+                            console.error('Upload failed:', errorData);
+                            throw new Error(errorData.error || 'Failed to upload media');
                         }
 
-                        const { url: mediaUrl } = await uploadResponse.json();
+                        const uploadResult = await uploadResponse.json();
+                        console.log('Upload successful:', uploadResult);
+                        const { url: mediaUrl } = uploadResult;
 
                         // Create media data object
                         const mediaItem = {
@@ -597,26 +669,35 @@
                             createdAt: new Date().toISOString()
                         };
 
+                        showUploadProgress('Saving location data...');
+                        
                         // Save the new point to global storage
                         await saveNewPoint(mediaItem);
                         addMarkerToMap(mediaItem);
                         closeUploadModal();
                         toggleUploadMode(); // Exit upload mode
+                        
+                        // Show success message
+                        setTimeout(() => {
+                            alert('✅ Media uploaded successfully!');
+                        }, 100);
                     } catch (error) {
                         console.error('Upload error:', error);
-                        alert('Failed to upload media. Please try again.');
+                        alert('Failed to upload media: ' + error.message);
                     } finally {
-                        // Reset button state
+                        // Reset button state and hide progress
                         submitBtn.textContent = originalText;
                         submitBtn.disabled = false;
+                        hideUploadProgress();
                     }
                 };
                 reader.readAsDataURL(file);
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred. Please try again.');
+                alert('An error occurred: ' + error.message);
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
+                hideUploadProgress();
             }
         });
 
@@ -757,13 +838,41 @@
                 console.log('Test result:', data);
                 
                 if (data.success) {
-                    alert(`✅ Blob test successful!\nFound ${data.count} points\nURL: ${data.blob.url}`);
+                    alert(`✅ Blob test successful!\nFound ${data.blobCount} blobs\nPoints files: ${data.pointsFiles}\nLatest: ${data.latestPointsFile || 'None'}`);
                 } else {
-                    alert(`❌ Blob test failed: ${data.error}`);
+                    alert(`❌ Blob test failed: ${data.error}\nType: ${data.errorType}`);
                 }
             } catch (error) {
                 console.error('Test error:', error);
                 alert(`❌ Test error: ${error.message}`);
+            }
+        }
+
+        // Check configuration function
+        async function checkConfig() {
+            try {
+                console.log('Checking configuration...');
+                const response = await fetch('/api/check-config');
+                const data = await response.json();
+                console.log('Config check result:', data);
+                
+                let message = `🔧 Configuration Check\n\n`;
+                message += `Environment: ${data.environment.env}\n`;
+                message += `Node: ${data.environment.nodeVersion}\n\n`;
+                message += `Blob Token: ${data.blobConfiguration.hasToken ? '✅ Present' : '❌ Missing'}\n`;
+                message += `Blob Test: ${data.blobConfiguration.test.success ? '✅ Working' : '❌ Failed'}\n`;
+                
+                if (data.recommendations.length > 0) {
+                    message += `\n📋 Recommendations:\n`;
+                    data.recommendations.forEach(rec => {
+                        message += `• ${rec.message}\n`;
+                    });
+                }
+                
+                alert(message);
+            } catch (error) {
+                console.error('Config check error:', error);
+                alert(`❌ Config check error: ${error.message}`);
             }
         }
 
