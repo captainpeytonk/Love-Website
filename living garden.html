@@ -356,16 +356,7 @@
             document.body.appendChild(element);
         }
 
-        // Background selection
-        document.querySelectorAll('.bg-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.bg-option').forEach(opt => opt.classList.remove('active'));
-                this.classList.add('active');
-                
-                const bgType = this.dataset.bg;
-                document.body.className = `background-${bgType}`;
-            });
-        });
+        // Background selection - REMOVED (replaced by improved version below)
 
         // Function selection
         document.querySelectorAll('.function-btn').forEach(btn => {
@@ -565,16 +556,29 @@ document.querySelectorAll('.bg-option').forEach(option => {
         
         if (bg === 'grass' || bg === 'snow' || bg === 'dirt') {
             // Use texture images
-            document.body.style.backgroundImage = `url('textures/${bg}.png')`;
+            const textureUrl = `textures/${bg}.png`;
+            document.body.style.backgroundImage = `url('${textureUrl}')`;
             document.body.style.backgroundSize = 'cover';
             document.body.style.backgroundPosition = 'center';
             document.body.style.backgroundRepeat = 'no-repeat';
+            
+            // Test if image loads
+            const testImg = new Image();
+            testImg.onload = () => console.log(`✅ Texture loaded successfully: ${textureUrl}`);
+            testImg.onerror = () => console.error(`❌ Failed to load texture: ${textureUrl}`);
+            testImg.src = textureUrl;
+            
         } else {
             // Use CSS gradients
             document.body.className = `background-${bg}`;
         }
         
         console.log(`Background changed to: ${bg}`);
+        console.log('Current body styles:', {
+            className: document.body.className,
+            backgroundImage: document.body.style.backgroundImage,
+            backgroundSize: document.body.style.backgroundSize
+        });
     });
 });
 
@@ -697,7 +701,18 @@ document.getElementById('delete-btn').addEventListener('click', () => {
 
 
 // Load garden when page loads
-window.addEventListener('load', loadGardenFromBlob);
+window.addEventListener('load', () => {
+    loadGardenFromBlob();
+    
+    // Test texture accessibility
+    console.log('🔍 Testing texture accessibility...');
+    ['grass', 'snow', 'dirt'].forEach(texture => {
+        const testImg = new Image();
+        testImg.onload = () => console.log(`✅ ${texture}.png is accessible`);
+        testImg.onerror = () => console.error(`❌ ${texture}.png is NOT accessible`);
+        testImg.src = `textures/${texture}.png`;
+    });
+});
 
 // Toggle UI
 document.getElementById('toggle-ui').addEventListener('click', () => {
