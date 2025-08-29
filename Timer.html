@@ -219,6 +219,51 @@
 
   let events = [];
 
+  // Load events from blob storage on page load
+  async function loadEventsFromBlob() {
+    try {
+      const response = await fetch('/api/load-timeline');
+      if (response.ok) {
+        const data = await response.json();
+        events = data.events || [];
+        console.log(`Loaded ${events.length} events from blob storage`);
+        renderEvents();
+      } else {
+        console.log('Failed to load events from blob storage');
+      }
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  }
+
+  // Save events to blob storage
+  async function saveEventsToBlob() {
+    try {
+      const response = await fetch('/api/save-timeline', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          events: events
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save events');
+      }
+
+      const result = await response.json();
+      console.log('Events saved successfully! Total events:', result.totalEvents);
+    } catch (error) {
+      console.error('Error saving events:', error);
+      alert('Failed to save events. Please try again.');
+    }
+  }
+
+  // Load events when page loads
+  window.addEventListener('load', loadEventsFromBlob);
+
   addButton.addEventListener('click', () => {
     addButton.style.display = 'none';
     eventForm.style.display = 'flex';
@@ -254,11 +299,17 @@
     eventForm.style.display = 'none';
     addButton.style.display = 'flex';
     renderEvents();
+    
+    // Save to blob storage after adding new event
+    saveEventsToBlob();
   });
 
   function deleteEvent(index) {
     events.splice(index, 1);
     renderEvents();
+    
+    // Save to blob storage after deleting event
+    saveEventsToBlob();
   }
 
   function renderEvents() {
@@ -400,7 +451,10 @@ function loadScrollGalleries() {
   });
 }
 
-window.addEventListener("load", loadScrollGalleries);
+window.addEventListener("load", () => {
+  loadScrollGalleries();
+  loadEventsFromBlob();
+});
 
   
 </script>
