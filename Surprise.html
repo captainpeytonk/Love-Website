@@ -115,6 +115,48 @@
 .shake-side {
   animation: shakeSide 0.6s ease infinite;
 }
+
+#heart-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9998;
+}
+
+.heart {
+  position: absolute;
+  bottom: 0; /* start from bottom */
+  font-size: 1.5rem;
+  color: red;
+  animation-name: floatUp;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* Floating hearts animation with random horizontal and rotation movement */
+@keyframes floatUp {
+  0% {
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: translateX(var(--x1)) translateY(-25vh) rotate(var(--r1));
+  }
+  50% {
+    transform: translateX(var(--x2)) translateY(-50vh) rotate(var(--r2));
+  }
+  75% {
+    transform: translateX(var(--x3)) translateY(-75vh) rotate(var(--r3));
+  }
+  100% {
+    transform: translateX(var(--x4)) translateY(-120vh) rotate(var(--r4));
+    opacity: 0;
+  }
+}
     
   </style>
 </head>
@@ -128,37 +170,66 @@
 <img id="love-bat" class="clickable" data-sound="Anniversary/bat.mp3" src="Anniversary/Love bat.png" alt="Love Bat">
 <img id="love-castle" class="clickable" data-sound="Anniversary/castle.mp3" src="Anniversary/Love castle.png" alt="Love Castle">
   <img id="hearts-popup" src="Anniversary/hearts.png" alt="Hearts" style="display: none;">
+<div id="heart-container"></div>
 
 <script>
 const clickableImages = document.querySelectorAll(".clickable");
 const heartsPopup = document.getElementById("hearts-popup");
+const heartContainer = document.getElementById("heart-container");
 
 clickableImages.forEach(img => {
   img.addEventListener("click", () => {
-    // Create a new audio object for each click
+    // Play audio
     const sound = new Audio(img.dataset.sound);
     sound.currentTime = 0;
     sound.play();
 
-    // Add shake animation to clicked image
+    // Shake clicked image
     img.classList.add("shake");
-    setTimeout(() => {
-      img.classList.remove("shake");
-    }, 600);
+    setTimeout(() => img.classList.remove("shake"), 600);
 
-    // Special effect for Alex
-    if (img.id === "love-alex") {
-      // Show hearts popup
-      heartsPopup.style.display = "block";
-      heartsPopup.classList.add("shake-side");
+if (img.id === "love-alex") {
+  // Show central hearts.png
+  heartsPopup.style.display = "block";
+  heartsPopup.classList.add("shake-side");
 
-      // Hide hearts when sound finishes
-      sound.addEventListener("ended", () => {
-        heartsPopup.style.display = "none";
-        heartsPopup.classList.remove("shake-side");
-      });
-    }
+  sound.addEventListener("ended", () => {
+    heartsPopup.style.display = "none";
+    heartsPopup.classList.remove("shake-side");
   });
+
+  // Generate 100 floating hearts
+  for (let i = 0; i < 100; i++) {
+    const heart = document.createElement("div");
+    heart.classList.add("heart");
+    heart.textContent = "❤️";
+
+    // Randomize horizontal movement (CSS variables)
+    heart.style.setProperty("--x1", `${(Math.random() - 0.5) * 50}px`);
+    heart.style.setProperty("--x2", `${(Math.random() - 0.5) * 50}px`);
+    heart.style.setProperty("--x3", `${(Math.random() - 0.5) * 50}px`);
+    heart.style.setProperty("--x4", `${(Math.random() - 0.5) * 50}px`);
+
+    // Random rotation
+    heart.style.setProperty("--r1", `${Math.random() * 30 - 15}deg`);
+    heart.style.setProperty("--r2", `${Math.random() * 30 - 15}deg`);
+    heart.style.setProperty("--r3", `${Math.random() * 30 - 15}deg`);
+    heart.style.setProperty("--r4", `${Math.random() * 30 - 15}deg`);
+
+    // Random animation duration
+    const duration = 3 + Math.random() * 2; // 3–5 seconds
+    heart.style.animationDuration = `${duration}s`;
+
+    // Random starting horizontal position
+    heart.style.left = `${Math.random() * 100}vw`;
+
+    heartContainer.appendChild(heart);
+
+    // Remove after animation ends
+    heart.addEventListener("animationend", () => heart.remove());
+  }
+}  
+});
 });
 </script>
 </body>
