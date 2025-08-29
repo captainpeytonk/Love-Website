@@ -246,6 +246,109 @@
         let isResizing = false;
         let isRotating = false;
         let characters = [];
+        let gardenElements = [];
+
+        // Load garden data from blob storage on page load
+        async function loadGardenFromBlob() {
+            try {
+                const response = await fetch('/api/data-manager?operation=load&dataType=garden');
+                if (response.ok) {
+                    const data = await response.json();
+                    gardenElements = data.data || [];
+                    console.log(`Loaded ${gardenElements.length} garden elements from blob storage`);
+                    restoreGarden();
+                } else {
+                    console.log('Failed to load garden from blob storage');
+                }
+            } catch (error) {
+                console.error('Error loading garden:', error);
+            }
+        }
+
+        // Save garden data to blob storage
+        async function saveGardenToBlob() {
+            try {
+                // Collect all garden elements data
+                const elements = [];
+                document.querySelectorAll('.garden-element').forEach(element => {
+                    const img = element.querySelector('img');
+                    const elementData = {
+                        id: element.dataset.id || Date.now(),
+                        imageSrc: img.src,
+                        functionType: element.classList.contains('character') ? 'character' : 'decoration',
+                        position: {
+                            left: element.style.left,
+                            top: element.style.top
+                        },
+                        size: img.style.width,
+                        rotation: element.style.transform,
+                        characterType: element.dataset.characterType || 'bunny',
+                        isPaused: element.dataset.paused === 'true'
+                    };
+                    elements.push(elementData);
+                });
+
+                const response = await fetch('/api/data-manager?operation=save&dataType=garden', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        data: elements
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save garden');
+                }
+
+                const result = await response.json();
+                console.log('Garden saved successfully! Total elements:', result.totalItems);
+            } catch (error) {
+                console.error('Error saving garden:', error);
+                alert('Failed to save garden. Please try again.');
+            }
+        }
+
+        // Restore garden from saved data
+        function restoreGarden() {
+            gardenElements.forEach(elementData => {
+                createGardenElementFromData(elementData);
+            });
+        }
+
+        // Create garden element from saved data
+        function createGardenElementFromData(elementData) {
+            const element = document.createElement('div');
+            element.className = `garden-element ${elementData.functionType}`;
+            element.dataset.id = elementData.id;
+            
+            const img = document.createElement('img');
+            img.src = elementData.imageSrc;
+            img.style.width = elementData.size || '80px';
+            img.style.height = 'auto';
+            
+            element.appendChild(img);
+            
+            // Restore position
+            element.style.left = elementData.position.left;
+            element.style.top = elementData.position.top;
+            
+            // Restore rotation
+            if (elementData.rotation) {
+                element.style.transform = elementData.rotation;
+            }
+
+            if (elementData.functionType === 'decoration') {
+                setupDecorationElement(element);
+            } else if (elementData.functionType === 'character') {
+                element.dataset.characterType = elementData.characterType;
+                element.dataset.paused = elementData.isPaused;
+                setupCharacterElement(element);
+            }
+            
+            document.body.appendChild(element);
+        }
 
         // Background selection
         document.querySelectorAll('.bg-option').forEach(option => {
@@ -282,6 +385,7 @@
         function createGardenElement(imageSrc, functionType) {
             const element = document.createElement('div');
             element.className = `garden-element ${functionType}`;
+            element.dataset.id = Date.now();
             
             const img = document.createElement('img');
             img.src = imageSrc;
@@ -303,6 +407,9 @@
             }
             
             document.body.appendChild(element);
+            
+            // Save to blob storage after adding new element
+            saveGardenToBlob();
         }
 
         function setupDecorationElement(element) {
@@ -420,6 +527,9 @@
                 draggedElement = null;
                 isResizing = false;
                 isRotating = false;
+                
+                // Save to blob storage after moving/resizing/rotating element
+                saveGardenToBlob();
             }
         });
 
@@ -561,6 +671,9 @@ function moveRandomly(character, minDelay, maxDelay, step=200) {
 
     // Clear the characters array
     characters.length = 0;
+    
+    // Save to blob storage after deleting all elements
+    saveGardenToBlob();
 }
 
         // Add this inside your <script> tag, preferably near the bottom or after the delete function
@@ -571,6 +684,9 @@ document.getElementById('delete-btn').addEventListener('click', () => {
     }
 });
 
+
+// Load garden when page loads
+window.addEventListener('load', loadGardenFromBlob);
 
 // Toggle UI
 document.getElementById('toggle-ui').addEventListener('click', () => {

@@ -13,7 +13,8 @@ module.exports = async function handler(req, res) {
             // Determine prefix based on data type
             const prefix = dataType === 'timeline' ? 'love-timeline-' : 
                           dataType === 'bucket' ? 'love-bucket-' : 
-                          dataType === 'food' ? 'love-food-' : 'love-unknown-';
+                          dataType === 'food' ? 'love-food-' : 
+                          dataType === 'garden' ? 'love-garden-' : 'love-unknown-';
             const files = blobs.blobs.filter(blob => blob.pathname.startsWith(prefix));
             console.log(`Found ${dataType} files:`, files.map(f => ({ pathname: f.pathname, uploadedAt: f.uploadedAt })));
             
@@ -60,7 +61,8 @@ module.exports = async function handler(req, res) {
             // Determine prefix based on data type
             const prefix = dataType === 'timeline' ? 'love-timeline-' : 
                           dataType === 'bucket' ? 'love-bucket-' : 
-                          dataType === 'food' ? 'love-food-' : 'love-unknown-';
+                          dataType === 'food' ? 'love-food-' : 
+                          dataType === 'garden' ? 'love-garden-' : 'love-unknown-';
             
             // Get existing data from the most recent file
             let existingData = [];
