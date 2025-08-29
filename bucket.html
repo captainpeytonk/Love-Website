@@ -218,6 +218,52 @@
     let bucketItems = [];
     let nextId = 1;
 
+    // Load items from blob storage on page load
+    async function loadItemsFromBlob() {
+      try {
+        const response = await fetch('/api/load-bucket');
+        if (response.ok) {
+          const data = await response.json();
+          bucketItems = data.items || [];
+          // Update nextId to be higher than any existing id
+          if (bucketItems.length > 0) {
+            nextId = Math.max(...bucketItems.map(item => item.id)) + 1;
+          }
+          console.log(`Loaded ${bucketItems.length} items from blob storage`);
+          renderList();
+        } else {
+          console.log('Failed to load items from blob storage');
+        }
+      } catch (error) {
+        console.error('Error loading items:', error);
+      }
+    }
+
+    // Save items to blob storage
+    async function saveItemsToBlob() {
+      try {
+        const response = await fetch('/api/save-bucket', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            bucketItems: bucketItems
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save items');
+        }
+
+        const result = await response.json();
+        console.log('Items saved successfully! Total items:', result.totalItems);
+      } catch (error) {
+        console.error('Error saving items:', error);
+        alert('Failed to save items. Please try again.');
+      }
+    }
+
     const initialView = document.getElementById('initialView');
     const listView = document.getElementById('listView');
     const bucketContainer = document.getElementById('bucketContainer');
@@ -243,6 +289,9 @@
       }
     });
 
+    // Load items when page loads
+    window.addEventListener('load', loadItemsFromBlob);
+
     function addItem(text) {
       const item = {
         id: nextId++,
@@ -253,6 +302,9 @@
       };
       bucketItems.push(item);
       renderList();
+      
+      // Save to blob storage after adding new item
+      saveItemsToBlob();
     }
 
     function toggleItem(id) {
@@ -260,6 +312,9 @@
       if (item) {
         item.completed = !item.completed;
         renderList();
+        
+        // Save to blob storage after toggling item
+        saveItemsToBlob();
       }
     }
 
@@ -268,6 +323,9 @@
       if (item) {
         item[field] = value;
         renderList();
+        
+        // Save to blob storage after updating fields
+        saveItemsToBlob();
       }
     }
 
@@ -375,6 +433,9 @@ function renderList() {
       if (item) {
         item.photo = "";
         renderList();
+        
+        // Save to blob storage after removing photo
+        saveItemsToBlob();
       }
     }
     window.removePhoto = removePhoto;
