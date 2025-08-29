@@ -502,6 +502,48 @@
         let foodMemories = [];
         let currentSort = "date";
 
+        // Load food memories from blob storage on page load
+        async function loadFoodMemoriesFromBlob() {
+            try {
+                const response = await fetch('/api/data-manager?operation=load&dataType=food');
+                if (response.ok) {
+                    const data = await response.json();
+                    foodMemories = data.data || [];
+                    console.log(`Loaded ${foodMemories.length} food memories from blob storage`);
+                    renderGallery();
+                } else {
+                    console.log('Failed to load food memories from blob storage');
+                }
+            } catch (error) {
+                console.error('Error loading food memories:', error);
+            }
+        }
+
+        // Save food memories to blob storage
+        async function saveFoodMemoriesToBlob() {
+            try {
+                const response = await fetch('/api/data-manager?operation=save&dataType=food', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        data: foodMemories
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save food memories');
+                }
+
+                const result = await response.json();
+                console.log('Food memories saved successfully! Total memories:', result.totalItems);
+            } catch (error) {
+                console.error('Error saving food memories:', error);
+                alert('Failed to save food memories. Please try again.');
+            }
+        }
+
         // File input preview
         document.getElementById('foodImage').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -541,6 +583,9 @@
                     renderGallery();
                     closeUploadModal();
                     resetForm();
+                    
+                    // Save to blob storage after adding new food memory
+                    saveFoodMemoriesToBlob();
                 };
                 reader.readAsDataURL(imageFile);
             }
@@ -599,6 +644,9 @@
             document.getElementById('sortOptions').style.display = "none";
         }
 
+        // Load food memories when page loads
+        window.addEventListener('load', loadFoodMemoriesFromBlob);
+        
         renderGallery();
     </script>
 </body>

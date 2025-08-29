@@ -11,7 +11,9 @@ module.exports = async function handler(req, res) {
             console.log('All available blobs:', blobs.blobs.map(b => ({ pathname: b.pathname, uploadedAt: b.uploadedAt })));
             
             // Determine prefix based on data type
-            const prefix = dataType === 'timeline' ? 'love-timeline-' : 'love-bucket-';
+            const prefix = dataType === 'timeline' ? 'love-timeline-' : 
+                          dataType === 'bucket' ? 'love-bucket-' : 
+                          dataType === 'food' ? 'love-food-' : 'love-unknown-';
             const files = blobs.blobs.filter(blob => blob.pathname.startsWith(prefix));
             console.log(`Found ${dataType} files:`, files.map(f => ({ pathname: f.pathname, uploadedAt: f.uploadedAt })));
             
@@ -56,7 +58,9 @@ module.exports = async function handler(req, res) {
             const { put, head, list, del } = await import('@vercel/blob');
 
             // Determine prefix based on data type
-            const prefix = dataType === 'timeline' ? 'love-timeline-' : 'love-bucket-';
+            const prefix = dataType === 'timeline' ? 'love-timeline-' : 
+                          dataType === 'bucket' ? 'love-bucket-' : 
+                          dataType === 'food' ? 'love-food-' : 'love-unknown-';
             
             // Get existing data from the most recent file
             let existingData = [];
