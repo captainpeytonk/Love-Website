@@ -382,6 +382,9 @@
             <button class="health-btn" onclick="healthCheck()" style="background: #45aaf2; color: white; border: none; padding: 8px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem;">
                 🏥 Health
             </button>
+            <button class="simple-test-btn" onclick="simpleTest()" style="background: #26de81; color: white; border: none; padding: 8px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem;">
+                🧪 Simple
+            </button>
         </div>
     </div>
     
@@ -904,6 +907,26 @@
             } catch (error) {
                 console.error('Health check error:', error);
                 alert(`❌ Health check failed: ${error.message}\n\nThis usually means the API endpoints are not working. Please check your Vercel deployment.`);
+            }
+        }
+
+        // Simple test function
+        async function simpleTest() {
+            try {
+                console.log('Performing simple test...');
+                const response = await fetch('/api/simple-test');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Simple test result:', data);
+                
+                alert(`✅ Simple Test Successful!\n\nMessage: ${data.message}\nMethod: ${data.method}\nURL: ${data.url}\nTime: ${data.timestamp}`);
+            } catch (error) {
+                console.error('Simple test error:', error);
+                alert(`❌ Simple test failed: ${error.message}\n\nThis confirms that the API routing is not working.`);
             }
         }
 
