@@ -1,29 +1,29 @@
-import { put } from "@vercel/blob";
+const { put } = require('@vercel/blob');
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  try {
-    const { file, fileName, fileType } = req.body;
-
-    if (!file || !fileName) {
-      return res.status(400).json({ error: 'File and fileName are required' });
+module.exports = async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Convert base64 to buffer
-    const buffer = Buffer.from(file.split(',')[1], 'base64');
+    try {
+        const { mediaData, fileName, fileType } = req.body;
 
-    // Upload to Vercel Blob
-    const { url } = await put(fileName, buffer, { 
-      access: 'public',
-      contentType: fileType 
-    });
+        if (!mediaData || !fileName) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
 
-    res.status(200).json({ url });
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Failed to upload file' });
-  }
+        // Convert base64 to buffer
+        const buffer = Buffer.from(mediaData.split(',')[1], 'base64');
+
+        // Upload to Vercel Blob
+        const { url } = await put(fileName, buffer, { 
+            access: 'public',
+            contentType: fileType
+        });
+
+        res.status(200).json({ url });
+    } catch (error) {
+        console.error('Upload error:', error);
+        res.status(500).json({ error: 'Upload failed' });
+    }
 }

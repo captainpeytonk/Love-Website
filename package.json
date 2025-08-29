@@ -1,20 +1,25 @@
 {
-  "name": "worldspots-vercel",
+  "name": "worldspots",
   "version": "1.0.0",
-  "description": "WorldSpots with Vercel Blob Storage",
+  "description": "WorldSpots - Share Your World with Vercel Blob Storage",
   "main": "index.js",
   "scripts": {
     "dev": "vercel dev",
-    "build": "vercel build",
     "deploy": "vercel --prod"
   },
   "dependencies": {
-    "@vercel/blob": "^0.22.0"
+    "@vercel/blob": "^0.23.4"
   },
   "devDependencies": {
     "vercel": "^32.0.0"
   },
-  "keywords": ["vercel", "blob", "storage", "map", "media"],
-  "author": "Your Name",
+  "keywords": [
+    "worldspots",
+    "map",
+    "vercel",
+    "blob",
+    "storage"
+  ],
+  "author": "Martin",
   "license": "MIT"
 }
