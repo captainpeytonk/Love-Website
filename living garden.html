@@ -187,9 +187,9 @@
         <div class="control-group">
             <h3>🌿 Choose Background</h3>
             <div class="background-selector">
-                                 <div class="bg-option" style="background-image: url('textures/Grass.png');" data-bg="grass" title="Grass"></div>
-                 <div class="bg-option" style="background-image: url('textures/Snow.png');" data-bg="snow" title="Snow"></div>
-                 <div class="bg-option" style="background-image: url('textures/Dirt.png');" data-bg="dirt" title="Dirt"></div>
+                                 <div class="bg-option" style="background-image: url('textures/grass.png');" data-bg="grass" title="Grass"></div>
+                 <div class="bg-option" style="background-image: url('textures/snow.png');" data-bg="snow" title="Snow"></div>
+                 <div class="bg-option" style="background-image: url('textures/dirt.png');" data-bg="dirt" title="Dirt"></div>
                 <button id="delete-btn" title="Delete all decorations and characters" style="font-size: 20px; cursor: pointer;">
                     🗑️
                 </button>
@@ -233,13 +233,17 @@
                  // Load garden data from blob storage on page load
          async function loadGardenFromBlob() {
              try {
+                 console.log('Loading garden from blob storage...');
                  const response = await fetch('/api/data-manager?operation=load&dataType=garden');
                  if (response.ok) {
                      const data = await response.json();
+                     console.log('Loaded data:', data);
+                     
                      gardenElements = data.data || [];
                      
                      // Load background if saved
                      if (data.background) {
+                         console.log('Loading saved background:', data.background);
                          currentBackground = data.background;
                          applyBackground(currentBackground);
                          // Mark the correct button as active
@@ -247,8 +251,11 @@
                              opt.classList.remove('active');
                              if (opt.dataset.bg === currentBackground) {
                                  opt.classList.add('active');
+                                 console.log('Marked button as active:', opt.dataset.bg);
                              }
                          });
+                     } else {
+                         console.log('No saved background found, using default');
                      }
                      
                      console.log(`Loaded ${gardenElements.length} garden elements from blob storage`);
@@ -264,6 +271,9 @@
                  // Save garden data to blob storage
          async function saveGardenToBlob() {
              try {
+                 console.log('Starting to save garden...');
+                 console.log('Current background:', currentBackground);
+                 
                  // Collect all garden elements data
                  const elements = [];
                  document.querySelectorAll('.garden-element').forEach(element => {
@@ -284,15 +294,19 @@
                      elements.push(elementData);
                  });
 
+                 const saveData = {
+                     data: elements,
+                     background: currentBackground
+                 };
+                 
+                 console.log('Saving data:', saveData);
+
                  const response = await fetch('/api/data-manager?operation=save&dataType=garden', {
                      method: 'POST',
                      headers: {
                          'Content-Type': 'application/json',
                      },
-                     body: JSON.stringify({
-                         data: elements,
-                         background: currentBackground
-                     })
+                     body: JSON.stringify(saveData)
                  });
 
                  if (!response.ok) {
@@ -300,7 +314,7 @@
                  }
 
                  const result = await response.json();
-                 console.log('Garden saved successfully! Total elements:', result.totalItems);
+                 console.log('Garden saved successfully! Total elements:', result.totalItems, 'Background:', currentBackground);
              } catch (error) {
                  console.error('Error saving garden:', error);
                  alert('Failed to save garden. Please try again.');
@@ -349,6 +363,8 @@
 
                  // Function to apply background
          function applyBackground(bg) {
+             console.log(`Applying background: ${bg}`);
+             
              // Reset body styles completely
              document.body.className = '';
              document.body.style.backgroundImage = '';
@@ -359,27 +375,30 @@
              
              // Apply texture background
              const textureUrl = `textures/${bg}.png`;
-             document.body.style.backgroundImage = `url('${textureUrl}')`;
-             document.body.style.backgroundSize = 'cover';
-             document.body.style.backgroundPosition = 'center';
-             document.body.style.backgroundRepeat = 'no-repeat';
+             console.log(`Loading texture from: ${textureUrl}`);
              
-             // Test if image loads
+             // Test if image loads first
              const testImg = new Image();
              testImg.onload = () => {
                  console.log(`✅ Texture loaded successfully: ${textureUrl}`);
+                 // Apply the background image
+                 document.body.style.backgroundImage = `url('${textureUrl}')`;
+                 document.body.style.backgroundSize = 'cover';
+                 document.body.style.backgroundPosition = 'center';
+                 document.body.style.backgroundRepeat = 'no-repeat';
                  console.log('Background applied successfully');
              };
              testImg.onerror = () => {
                  console.error(`❌ Failed to load texture: ${textureUrl}`);
                  // Fallback to a simple color if texture fails
-                 document.body.style.background = bg === 'grass' ? '#90EE90' : 
-                                                bg === 'snow' ? '#F0F8FF' : 
-                                                bg === 'dirt' ? '#8B4513' : '#FFFFFF';
+                 const fallbackColor = bg === 'grass' ? '#90EE90' : 
+                                     bg === 'snow' ? '#F0F8FF' : 
+                                     bg === 'dirt' ? '#8B4513' : '#FFFFFF';
+                 document.body.style.background = fallbackColor;
+                 console.log(`Applied fallback color: ${fallbackColor}`);
              };
              testImg.src = textureUrl;
              
-             console.log(`Background changed to: ${bg}`);
              console.log('Current body styles:', {
                  backgroundImage: document.body.style.backgroundImage,
                  backgroundSize: document.body.style.backgroundSize
@@ -570,17 +589,23 @@
 // Background selection with improved texture handling
 document.querySelectorAll('.bg-option').forEach(option => {
     option.addEventListener('click', function () {
+        console.log('Background option clicked:', this.dataset.bg);
+        
         document.querySelectorAll('.bg-option').forEach(opt => opt.classList.remove('active'));
         this.classList.add('active');
         
         const bg = this.dataset.bg;
         currentBackground = bg;
+        console.log('Current background set to:', currentBackground);
         
         // Apply the background
         applyBackground(bg);
         
         // Save to blob storage after changing background
-        saveGardenToBlob();
+        setTimeout(() => {
+            console.log('Saving garden with background:', currentBackground);
+            saveGardenToBlob();
+        }, 100); // Small delay to ensure background is applied
     });
 });
 
