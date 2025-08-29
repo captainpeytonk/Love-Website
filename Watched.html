@@ -395,7 +395,7 @@
                 this.ctx = this.canvas.getContext('2d');
                 
                 this.setupEventListeners();
-                this.loadShows();
+                this.loadShowsFromBlob();
                 this.updateDisplay();
             }
 
@@ -704,25 +704,71 @@
                 }).join('');
             }
 
+            // Load shows from blob storage
+            async loadShowsFromBlob() {
+                try {
+                    const response = await fetch('/api/data-manager?operation=load&dataType=watched');
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.shows = data.data || [];
+                        console.log(`Loaded ${this.shows.length} shows from blob storage`);
+                    } else {
+                        console.log('Failed to load shows from blob storage, trying localStorage');
+                        this.loadShowsFromLocalStorage();
+                    }
+                } catch (error) {
+                    console.error('Error loading shows from blob storage:', error);
+                    this.loadShowsFromLocalStorage();
+                }
+            }
+
+            // Save shows to blob storage
+            async saveShowsToBlob() {
+                try {
+                    const response = await fetch('/api/data-manager?operation=save&dataType=watched', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            data: this.shows
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to save shows');
+                    }
+
+                    const result = await response.json();
+                    console.log('Shows saved successfully to blob storage! Total shows:', result.totalItems);
+                } catch (error) {
+                    console.error('Error saving shows to blob storage:', error);
+                    // Fallback to localStorage
+                    this.saveShowsToLocalStorage();
+                }
+            }
+
             saveShows() {
-                // In a real app, you'd save to localStorage or a database
-                // For this demo, we'll just keep it in memory
+                // Save to both blob storage and localStorage as backup
+                this.saveShowsToBlob();
+                this.saveShowsToLocalStorage();
+            }
+
+            saveShowsToLocalStorage() {
                 try {
                     localStorage.setItem('watchlist', JSON.stringify(this.shows));
                 } catch (e) {
-                    // Handle storage errors gracefully
                     console.log('Could not save to localStorage');
                 }
             }
 
-            loadShows() {
+            loadShowsFromLocalStorage() {
                 try {
                     const saved = localStorage.getItem('watchlist');
                     if (saved) {
                         this.shows = JSON.parse(saved);
                     }
                 } catch (e) {
-                    // Handle storage errors gracefully
                     console.log('Could not load from localStorage');
                     this.shows = [];
                 }
