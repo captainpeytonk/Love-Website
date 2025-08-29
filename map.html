@@ -570,6 +570,10 @@
                                 fileName: fileName,
                                 fileType: file.type
                             })
+                        }).catch(error => {
+                            console.error('Network error during upload:', error);
+                            alert('Failed to connect to the server. Please check your network or server configuration.');
+                            throw error;
                         });
 
                         if (!uploadResponse.ok) {

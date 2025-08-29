@@ -12,10 +12,8 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Convert base64 to buffer
         const buffer = Buffer.from(mediaData.split(',')[1], 'base64');
 
-        // Upload to Vercel Blob
         const { url } = await put(fileName, buffer, { 
             access: 'public',
             contentType: fileType
