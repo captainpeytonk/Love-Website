@@ -259,21 +259,30 @@
                  // Collect all garden elements data
                  const elements = [];
                  document.querySelectorAll('.garden-element').forEach(element => {
-                     const img = element.querySelector('img');
-                     const elementData = {
-                         id: element.dataset.id || Date.now(),
-                         imageSrc: img.src,
-                         functionType: element.classList.contains('character') ? 'character' : 'decoration',
-                         position: {
-                             left: element.style.left,
-                             top: element.style.top
-                         },
-                         size: img.style.width,
-                         rotation: element.style.transform,
-                         characterType: element.dataset.characterType || 'bunny',
-                         isPaused: element.dataset.paused === 'true'
-                     };
-                     elements.push(elementData);
+                     try {
+                         const img = element.querySelector('img');
+                         if (!img || !img.src) {
+                             console.warn('Skipping element without valid image:', element);
+                             return;
+                         }
+                         
+                         const elementData = {
+                             id: element.dataset.id || Date.now(),
+                             imageSrc: img.src,
+                             functionType: element.classList.contains('character') ? 'character' : 'decoration',
+                             position: {
+                                 left: element.style.left || '0px',
+                                 top: element.style.top || '0px'
+                             },
+                             size: img.style.width || '80px',
+                             rotation: element.style.transform || '',
+                             characterType: element.dataset.characterType || 'bunny',
+                             isPaused: element.dataset.paused === 'true'
+                         };
+                         elements.push(elementData);
+                     } catch (error) {
+                         console.error('Error processing garden element:', error, element);
+                     }
                  });
 
                  const saveData = {
@@ -298,7 +307,8 @@
                  console.log('Garden saved successfully! Total elements:', result.totalItems);
              } catch (error) {
                  console.error('Error saving garden:', error);
-                 alert('Failed to save garden. Please try again.');
+                 // Don't show alert for save errors, just log them
+                 console.log('Save failed, but continuing...');
              }
          }
 
@@ -311,35 +321,39 @@
 
         // Create garden element from saved data
         function createGardenElementFromData(elementData) {
-            const element = document.createElement('div');
-            element.className = `garden-element ${elementData.functionType}`;
-            element.dataset.id = elementData.id;
-            
-            const img = document.createElement('img');
-            img.src = elementData.imageSrc;
-            img.style.width = elementData.size || '80px';
-            img.style.height = 'auto';
-            
-            element.appendChild(img);
-            
-            // Restore position
-            element.style.left = elementData.position.left;
-            element.style.top = elementData.position.top;
-            
-            // Restore rotation
-            if (elementData.rotation) {
-                element.style.transform = elementData.rotation;
-            }
+            try {
+                const element = document.createElement('div');
+                element.className = `garden-element ${elementData.functionType}`;
+                element.dataset.id = elementData.id;
+                
+                const img = document.createElement('img');
+                img.src = elementData.imageSrc;
+                img.style.width = elementData.size || '80px';
+                img.style.height = 'auto';
+                
+                element.appendChild(img);
+                
+                // Restore position
+                element.style.left = elementData.position.left;
+                element.style.top = elementData.position.top;
+                
+                // Restore rotation
+                if (elementData.rotation) {
+                    element.style.transform = elementData.rotation;
+                }
 
-            if (elementData.functionType === 'decoration') {
-                setupDecorationElement(element);
-            } else if (elementData.functionType === 'character') {
-                element.dataset.characterType = elementData.characterType;
-                element.dataset.paused = elementData.isPaused;
-                setupCharacterElement(element);
+                if (elementData.functionType === 'decoration') {
+                    setupDecorationElement(element);
+                } else if (elementData.functionType === 'character') {
+                    element.dataset.characterType = elementData.characterType;
+                    element.dataset.paused = elementData.isPaused;
+                    setupCharacterElement(element);
+                }
+                
+                document.body.appendChild(element);
+            } catch (error) {
+                console.error('Error creating garden element from data:', error, elementData);
             }
-            
-            document.body.appendChild(element);
         }
 
                  // Function to apply background
