@@ -228,7 +228,7 @@
         let isRotating = false;
         let characters = [];
                  let gardenElements = [];
-         let currentBackground = 'grass'; // Default background
+
 
                  // Load garden data from blob storage on page load
          async function loadGardenFromBlob() {
@@ -240,23 +240,6 @@
                      console.log('Loaded data:', data);
                      
                      gardenElements = data.data || [];
-                     
-                     // Load background if saved
-                     if (data.background) {
-                         console.log('Loading saved background:', data.background);
-                         currentBackground = data.background;
-                         applyBackground(currentBackground);
-                         // Mark the correct button as active
-                         document.querySelectorAll('.bg-option').forEach(opt => {
-                             opt.classList.remove('active');
-                             if (opt.dataset.bg === currentBackground) {
-                                 opt.classList.add('active');
-                                 console.log('Marked button as active:', opt.dataset.bg);
-                             }
-                         });
-                     } else {
-                         console.log('No saved background found, using default');
-                     }
                      
                      console.log(`Loaded ${gardenElements.length} garden elements from blob storage`);
                      restoreGarden();
@@ -272,7 +255,6 @@
          async function saveGardenToBlob() {
              try {
                  console.log('Starting to save garden...');
-                 console.log('Current background:', currentBackground);
                  
                  // Collect all garden elements data
                  const elements = [];
@@ -295,8 +277,7 @@
                  });
 
                  const saveData = {
-                     data: elements,
-                     background: currentBackground
+                     data: elements
                  };
                  
                  console.log('Saving data:', saveData);
@@ -314,7 +295,7 @@
                  }
 
                  const result = await response.json();
-                 console.log('Garden saved successfully! Total elements:', result.totalItems, 'Background:', currentBackground);
+                 console.log('Garden saved successfully! Total elements:', result.totalItems);
              } catch (error) {
                  console.error('Error saving garden:', error);
                  alert('Failed to save garden. Please try again.');
@@ -595,17 +576,9 @@ document.querySelectorAll('.bg-option').forEach(option => {
         this.classList.add('active');
         
         const bg = this.dataset.bg;
-        currentBackground = bg;
-        console.log('Current background set to:', currentBackground);
         
         // Apply the background
         applyBackground(bg);
-        
-        // Save to blob storage after changing background
-        setTimeout(() => {
-            console.log('Saving garden with background:', currentBackground);
-            saveGardenToBlob();
-        }, 100); // Small delay to ensure background is applied
     });
 });
 
@@ -729,9 +702,6 @@ document.getElementById('delete-btn').addEventListener('click', () => {
 
 // Load garden when page loads
 window.addEventListener('load', () => {
-    // Apply default background first
-    applyBackground(currentBackground);
-    
     loadGardenFromBlob();
     
     // Test texture accessibility
