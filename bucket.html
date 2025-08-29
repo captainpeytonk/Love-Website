@@ -221,10 +221,10 @@
     // Load items from blob storage on page load
     async function loadItemsFromBlob() {
       try {
-        const response = await fetch('/api/load-bucket');
+        const response = await fetch('/api/data-manager?operation=load&dataType=bucket');
         if (response.ok) {
           const data = await response.json();
-          bucketItems = data.items || [];
+          bucketItems = data.data || [];
           // Update nextId to be higher than any existing id
           if (bucketItems.length > 0) {
             nextId = Math.max(...bucketItems.map(item => item.id)) + 1;
@@ -242,13 +242,13 @@
     // Save items to blob storage
     async function saveItemsToBlob() {
       try {
-        const response = await fetch('/api/save-bucket', {
+        const response = await fetch('/api/data-manager?operation=save&dataType=bucket', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            bucketItems: bucketItems
+            data: bucketItems
           })
         });
 

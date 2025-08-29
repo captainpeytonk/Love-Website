@@ -222,10 +222,10 @@
   // Load events from blob storage on page load
   async function loadEventsFromBlob() {
     try {
-      const response = await fetch('/api/load-timeline');
+      const response = await fetch('/api/data-manager?operation=load&dataType=timeline');
       if (response.ok) {
         const data = await response.json();
-        events = data.events || [];
+        events = data.data || [];
         console.log(`Loaded ${events.length} events from blob storage`);
         renderEvents();
       } else {
@@ -239,13 +239,13 @@
   // Save events to blob storage
   async function saveEventsToBlob() {
     try {
-      const response = await fetch('/api/save-timeline', {
+      const response = await fetch('/api/data-manager?operation=save&dataType=timeline', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          events: events
+          data: events
         })
       });
 
@@ -254,7 +254,7 @@
       }
 
       const result = await response.json();
-      console.log('Events saved successfully! Total events:', result.totalEvents);
+      console.log('Events saved successfully! Total events:', result.totalItems);
     } catch (error) {
       console.error('Error saving events:', error);
       alert('Failed to save events. Please try again.');
