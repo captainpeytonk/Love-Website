@@ -227,69 +227,85 @@
         let isResizing = false;
         let isRotating = false;
         let characters = [];
-        let gardenElements = [];
+                 let gardenElements = [];
+         let currentBackground = 'grass'; // Default background
 
-        // Load garden data from blob storage on page load
-        async function loadGardenFromBlob() {
-            try {
-                const response = await fetch('/api/data-manager?operation=load&dataType=garden');
-                if (response.ok) {
-                    const data = await response.json();
-                    gardenElements = data.data || [];
-                    console.log(`Loaded ${gardenElements.length} garden elements from blob storage`);
-                    restoreGarden();
-                } else {
-                    console.log('Failed to load garden from blob storage');
-                }
-            } catch (error) {
-                console.error('Error loading garden:', error);
-            }
-        }
+                 // Load garden data from blob storage on page load
+         async function loadGardenFromBlob() {
+             try {
+                 const response = await fetch('/api/data-manager?operation=load&dataType=garden');
+                 if (response.ok) {
+                     const data = await response.json();
+                     gardenElements = data.data || [];
+                     
+                     // Load background if saved
+                     if (data.background) {
+                         currentBackground = data.background;
+                         applyBackground(currentBackground);
+                         // Mark the correct button as active
+                         document.querySelectorAll('.bg-option').forEach(opt => {
+                             opt.classList.remove('active');
+                             if (opt.dataset.bg === currentBackground) {
+                                 opt.classList.add('active');
+                             }
+                         });
+                     }
+                     
+                     console.log(`Loaded ${gardenElements.length} garden elements from blob storage`);
+                     restoreGarden();
+                 } else {
+                     console.log('Failed to load garden from blob storage');
+                 }
+             } catch (error) {
+                 console.error('Error loading garden:', error);
+             }
+         }
 
-        // Save garden data to blob storage
-        async function saveGardenToBlob() {
-            try {
-                // Collect all garden elements data
-                const elements = [];
-                document.querySelectorAll('.garden-element').forEach(element => {
-                    const img = element.querySelector('img');
-                    const elementData = {
-                        id: element.dataset.id || Date.now(),
-                        imageSrc: img.src,
-                        functionType: element.classList.contains('character') ? 'character' : 'decoration',
-                        position: {
-                            left: element.style.left,
-                            top: element.style.top
-                        },
-                        size: img.style.width,
-                        rotation: element.style.transform,
-                        characterType: element.dataset.characterType || 'bunny',
-                        isPaused: element.dataset.paused === 'true'
-                    };
-                    elements.push(elementData);
-                });
+                 // Save garden data to blob storage
+         async function saveGardenToBlob() {
+             try {
+                 // Collect all garden elements data
+                 const elements = [];
+                 document.querySelectorAll('.garden-element').forEach(element => {
+                     const img = element.querySelector('img');
+                     const elementData = {
+                         id: element.dataset.id || Date.now(),
+                         imageSrc: img.src,
+                         functionType: element.classList.contains('character') ? 'character' : 'decoration',
+                         position: {
+                             left: element.style.left,
+                             top: element.style.top
+                         },
+                         size: img.style.width,
+                         rotation: element.style.transform,
+                         characterType: element.dataset.characterType || 'bunny',
+                         isPaused: element.dataset.paused === 'true'
+                     };
+                     elements.push(elementData);
+                 });
 
-                const response = await fetch('/api/data-manager?operation=save&dataType=garden', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        data: elements
-                    })
-                });
+                 const response = await fetch('/api/data-manager?operation=save&dataType=garden', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                     },
+                     body: JSON.stringify({
+                         data: elements,
+                         background: currentBackground
+                     })
+                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to save garden');
-                }
+                 if (!response.ok) {
+                     throw new Error('Failed to save garden');
+                 }
 
-                const result = await response.json();
-                console.log('Garden saved successfully! Total elements:', result.totalItems);
-            } catch (error) {
-                console.error('Error saving garden:', error);
-                alert('Failed to save garden. Please try again.');
-            }
-        }
+                 const result = await response.json();
+                 console.log('Garden saved successfully! Total elements:', result.totalItems);
+             } catch (error) {
+                 console.error('Error saving garden:', error);
+                 alert('Failed to save garden. Please try again.');
+             }
+         }
 
         // Restore garden from saved data
         function restoreGarden() {
@@ -331,7 +347,44 @@
             document.body.appendChild(element);
         }
 
-        // Background selection - REMOVED (replaced by improved version below)
+                 // Function to apply background
+         function applyBackground(bg) {
+             // Reset body styles completely
+             document.body.className = '';
+             document.body.style.backgroundImage = '';
+             document.body.style.backgroundSize = '';
+             document.body.style.backgroundPosition = '';
+             document.body.style.backgroundRepeat = '';
+             document.body.style.background = '';
+             
+             // Apply texture background
+             const textureUrl = `textures/${bg}.png`;
+             document.body.style.backgroundImage = `url('${textureUrl}')`;
+             document.body.style.backgroundSize = 'cover';
+             document.body.style.backgroundPosition = 'center';
+             document.body.style.backgroundRepeat = 'no-repeat';
+             
+             // Test if image loads
+             const testImg = new Image();
+             testImg.onload = () => {
+                 console.log(`✅ Texture loaded successfully: ${textureUrl}`);
+                 console.log('Background applied successfully');
+             };
+             testImg.onerror = () => {
+                 console.error(`❌ Failed to load texture: ${textureUrl}`);
+                 // Fallback to a simple color if texture fails
+                 document.body.style.background = bg === 'grass' ? '#90EE90' : 
+                                                bg === 'snow' ? '#F0F8FF' : 
+                                                bg === 'dirt' ? '#8B4513' : '#FFFFFF';
+             };
+             testImg.src = textureUrl;
+             
+             console.log(`Background changed to: ${bg}`);
+             console.log('Current body styles:', {
+                 backgroundImage: document.body.style.backgroundImage,
+                 backgroundSize: document.body.style.backgroundSize
+             });
+         }
 
         // Function selection
         document.querySelectorAll('.function-btn').forEach(btn => {
@@ -521,42 +574,13 @@ document.querySelectorAll('.bg-option').forEach(option => {
         this.classList.add('active');
         
         const bg = this.dataset.bg;
+        currentBackground = bg;
         
-        // Reset body styles completely
-        document.body.className = '';
-        document.body.style.backgroundImage = '';
-        document.body.style.backgroundSize = '';
-        document.body.style.backgroundPosition = '';
-        document.body.style.backgroundRepeat = '';
-        document.body.style.background = '';
+        // Apply the background
+        applyBackground(bg);
         
-        // Apply texture background
-        const textureUrl = `textures/${bg}.png`;
-        document.body.style.backgroundImage = `url('${textureUrl}')`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundPosition = 'center';
-        document.body.style.backgroundRepeat = 'no-repeat';
-        
-        // Test if image loads
-        const testImg = new Image();
-        testImg.onload = () => {
-            console.log(`✅ Texture loaded successfully: ${textureUrl}`);
-            console.log('Background applied successfully');
-        };
-        testImg.onerror = () => {
-            console.error(`❌ Failed to load texture: ${textureUrl}`);
-            // Fallback to a simple color if texture fails
-            document.body.style.background = bg === 'grass' ? '#90EE90' : 
-                                           bg === 'snow' ? '#F0F8FF' : 
-                                           bg === 'dirt' ? '#8B4513' : '#FFFFFF';
-        };
-        testImg.src = textureUrl;
-        
-        console.log(`Background changed to: ${bg}`);
-        console.log('Current body styles:', {
-            backgroundImage: document.body.style.backgroundImage,
-            backgroundSize: document.body.style.backgroundSize
-        });
+        // Save to blob storage after changing background
+        saveGardenToBlob();
     });
 });
 
@@ -680,6 +704,9 @@ document.getElementById('delete-btn').addEventListener('click', () => {
 
 // Load garden when page loads
 window.addEventListener('load', () => {
+    // Apply default background first
+    applyBackground(currentBackground);
+    
     loadGardenFromBlob();
     
     // Test texture accessibility
